@@ -268,7 +268,26 @@
       <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
         <p id="detail-description" class="text-sm leading-relaxed text-taleon-text whitespace-pre-wrap"></p>
         <div id="detail-images" class="hidden"></div>
-        <p id="detail-vote-wrap" class="text-xs text-taleon-muted">Saldo de votos: <span id="detail-vote-score" class="font-bold text-taleon-gold">0</span></p>
+        <div
+          id="detail-vote-wrap"
+          class="rounded-lg border border-taleon-border bg-taleon-bg px-3 py-2.5 text-sm"
+        >
+          <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-taleon-muted">Votos da sugestão</p>
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span class="inline-flex items-center gap-1.5 text-taleon-muted">
+              <i data-lucide="thumbs-up" class="h-4 w-4 text-taleon-gold"></i>
+              <span><span id="detail-vote-up" class="font-bold text-taleon-gold">0</span> positivos</span>
+            </span>
+            <span class="inline-flex items-center gap-1.5 text-taleon-muted">
+              <i data-lucide="thumbs-down" class="h-4 w-4"></i>
+              <span><span id="detail-vote-down" class="font-bold text-taleon-text">0</span> negativos</span>
+            </span>
+            <span class="inline-flex items-center gap-1.5 border-l border-taleon-border pl-4 text-taleon-muted">
+              Saldo:
+              <span id="detail-vote-score" class="font-bold text-taleon-gold">0</span>
+            </span>
+          </div>
+        </div>
         <section>
           <h3 class="mb-3 flex items-center gap-2 text-sm font-bold">
             <i data-lucide="message-square" class="h-4 w-4 text-taleon-gold"></i>

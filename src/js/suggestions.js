@@ -27,6 +27,8 @@ export async function fetchBoardSuggestions() {
   const approvedIds = suggestions.filter((s) => s.status === 'approved').map((s) => s.id);
 
   let scoreById = {};
+  let upCountById = {};
+  let downCountById = {};
   let commentCountById = {};
 
   if (approvedIds.length > 0) {
@@ -35,9 +37,19 @@ export async function fetchBoardSuggestions() {
       supabase.from('comments').select('suggestion_id').in('suggestion_id', approvedIds),
     ]);
 
-    for (const id of approvedIds) scoreById[id] = 0;
+    for (const id of approvedIds) {
+      scoreById[id] = 0;
+      upCountById[id] = 0;
+      downCountById[id] = 0;
+    }
     for (const v of votes ?? []) {
-      scoreById[v.suggestion_id] += v.vote_type === 'up' ? 1 : -1;
+      if (v.vote_type === 'up') {
+        upCountById[v.suggestion_id] += 1;
+        scoreById[v.suggestion_id] += 1;
+      } else {
+        downCountById[v.suggestion_id] += 1;
+        scoreById[v.suggestion_id] -= 1;
+      }
     }
     for (const c of comments ?? []) {
       commentCountById[c.suggestion_id] = (commentCountById[c.suggestion_id] || 0) + 1;
@@ -46,6 +58,8 @@ export async function fetchBoardSuggestions() {
 
   return suggestions.map((s) => ({
     ...s,
+    vote_up_count: s.status === 'approved' ? (upCountById[s.id] ?? 0) : 0,
+    vote_down_count: s.status === 'approved' ? (downCountById[s.id] ?? 0) : 0,
     vote_score: s.status === 'approved' ? (scoreById[s.id] ?? 0) : 0,
     comment_count: s.status === 'approved' ? (commentCountById[s.id] ?? 0) : 0,
   }));

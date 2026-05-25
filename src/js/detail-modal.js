@@ -67,15 +67,21 @@ export async function openDetailModal(suggestion) {
     galleryEl.classList.toggle('hidden', !galleryHtml);
   }
 
-  const voteEl = document.getElementById('detail-vote-score');
   const voteWrap = document.getElementById('detail-vote-wrap');
+  const voteUpEl = document.getElementById('detail-vote-up');
+  const voteDownEl = document.getElementById('detail-vote-down');
+  const voteScoreEl = document.getElementById('detail-vote-score');
   if (pending) {
     voteWrap?.classList.add('hidden');
   } else {
     voteWrap?.classList.remove('hidden');
-    if (voteEl) {
-      voteEl.textContent =
-        suggestion.vote_score > 0 ? `+${suggestion.vote_score}` : String(suggestion.vote_score ?? 0);
+    const up = suggestion.vote_up_count ?? 0;
+    const down = suggestion.vote_down_count ?? 0;
+    const score = suggestion.vote_score ?? up - down;
+    if (voteUpEl) voteUpEl.textContent = String(up);
+    if (voteDownEl) voteDownEl.textContent = String(down);
+    if (voteScoreEl) {
+      voteScoreEl.textContent = score > 0 ? `+${score}` : String(score);
     }
   }
 
