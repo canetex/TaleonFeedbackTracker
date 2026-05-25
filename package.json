@@ -1,0 +1,17 @@
+{
+  "name": "taleonmelhorias",
+  "version": "1.0.0",
+  "description": "Portal de sugestões e feedback da comunidade Taleon, organizado em colunas estilo Trello por categoria, com votação, comentários, moderação administrativa e dashboards analíticos.",
+  "main": "index.js",
+  "scripts": {
+    "db:apply": "node scripts/apply-schema.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "pg": "^8.21.0"
+  }
+}

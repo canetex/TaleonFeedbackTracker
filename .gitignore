@@ -17,6 +17,10 @@ yarn-error.log*
 /playwright-report/
 /test-results/
 
+# Agentes / lock local
+.agents/
+skills-lock.json
+
 # Arquivos de Sistema e IDEs
 .DS_Store
 Thumbs.db
