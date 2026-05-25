@@ -65,6 +65,30 @@ export async function fetchBoardSuggestions() {
   }));
 }
 
+/** Contagem ao vivo de votos de uma sugestão (usado no modal de detalhes). */
+export async function fetchSuggestionVoteStats(suggestionId) {
+  const supabase = getSupabase();
+  const { data: votes, error } = await supabase
+    .from('votes')
+    .select('vote_type')
+    .eq('suggestion_id', suggestionId);
+
+  if (error) throw error;
+
+  let vote_up_count = 0;
+  let vote_down_count = 0;
+  for (const v of votes ?? []) {
+    if (v.vote_type === 'up') vote_up_count += 1;
+    else if (v.vote_type === 'down') vote_down_count += 1;
+  }
+
+  return {
+    vote_up_count,
+    vote_down_count,
+    vote_score: vote_up_count - vote_down_count,
+  };
+}
+
 /** @deprecated use fetchBoardSuggestions */
 export const fetchApprovedSuggestions = fetchBoardSuggestions;
 
