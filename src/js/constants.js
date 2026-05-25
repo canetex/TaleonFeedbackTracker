@@ -37,9 +37,10 @@ export const CATEGORY_CHART_COLORS = [
   '#c45c8a',
 ];
 
-export const IMGUR_MAX_FILE_BYTES = 10 * 1024 * 1024;
-export const IMGUR_MAX_IMAGES = 3;
-export const IMGUR_ALLOWED_TYPES = [
+export const STORAGE_BUCKET = 'portal-images';
+export const IMAGE_MAX_FILE_BYTES = 10 * 1024 * 1024;
+export const IMAGE_MAX_PER_ITEM = 3;
+export const IMAGE_ALLOWED_TYPES = [
   'image/jpeg',
   'image/png',
   'image/gif',

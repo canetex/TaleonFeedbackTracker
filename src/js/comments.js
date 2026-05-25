@@ -5,7 +5,7 @@ export async function fetchComments(suggestionId) {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('comments')
-    .select('id, created_at, char_name, world, content')
+    .select('id, created_at, char_name, world, content, image_urls')
     .eq('suggestion_id', suggestionId)
     .order('created_at', { ascending: true });
 
@@ -20,6 +20,7 @@ export async function createComment(suggestionId, payload) {
     char_name: payload.char_name.trim(),
     world: payload.world,
     content: payload.content.trim(),
+    image_urls: payload.image_urls?.length ? payload.image_urls : [],
   });
 
   if (error) throw error;

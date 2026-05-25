@@ -125,7 +125,7 @@ No Netlify, configure as mesmas variáveis em **Site settings → Environment va
 | **4** | `admin.html`, moderação, modal de comentários ✅ |
 | **5** | Similarity check (IA) + Chart.js ✅ |
 | **6** | Deploy Netlify ✅ |
-| **7** *(backlog)* | Imagens nas sugestões via [Imgur API](https://apidocs.imgur.com/) — ver `plan.md` §10.1 |
+| **7** | Prints via Supabase Storage (`portal-images`, sugestões + comentários) ✅ |
 
 Detalhes completos em [`plan.md`](plan.md).
 
@@ -182,6 +182,12 @@ npm run deploy:netlify  # build + deploy --prod
 ```
 
 Não configure senhas de banco (`SUPABASE_PASSWORD`) nem `ADMIN_SECRET_PASSWORD` na Netlify — são apenas para backend/SQL local.
+
+## Fase 7 — Prints (Supabase Storage)
+
+1. Aplique a migration [`004_storage_portal_images.sql`](supabase/migrations/004_storage_portal_images.sql) no SQL Editor ou `npm run db:apply`.
+2. No Dashboard Supabase → **Storage**, confira o bucket público `portal-images`.
+3. No portal: botões **Enviar print** (nova sugestão) e **Anexar print** (comentários). Até 3 imagens × 10 MB (JPEG, PNG, GIF, WebP).
 
 ## Fase 5 — IA e dashboards
 

@@ -165,10 +165,14 @@
           <textarea required name="description" id="description" rows="4" minlength="10" maxlength="4000" class="w-full rounded-lg border border-taleon-border bg-taleon-bg px-3 py-2 text-sm outline-none focus:border-taleon-gold" placeholder="Descreva a sugestão com detalhes…"></textarea>
         </div>
         <div>
-          <label for="suggestion-images" class="mb-1 block text-xs font-medium text-taleon-muted">Imagens (opcional)</label>
-          <input type="file" id="suggestion-images" accept="image/jpeg,image/png,image/gif,image/webp" multiple class="w-full text-xs text-taleon-muted file:mr-2 file:rounded file:border-0 file:bg-taleon-gold/20 file:px-3 file:py-1.5 file:text-taleon-gold" />
-          <p class="mt-1 text-[11px] text-taleon-muted">Até 3 imagens · máx. 10 MB · JPEG, PNG, GIF ou WebP. Falha no upload não impede o envio.</p>
-          <div id="image-preview-list" class="mt-2 flex flex-wrap gap-2"></div>
+          <span class="mb-1 block text-xs font-medium text-taleon-muted">Prints (opcional)</span>
+          <label for="suggestion-images" class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-taleon-gold/40 bg-taleon-gold/10 px-3 py-2 text-sm font-semibold text-taleon-gold hover:bg-taleon-gold/20">
+            <i data-lucide="upload" class="h-4 w-4"></i>
+            Enviar print
+          </label>
+          <input type="file" id="suggestion-images" accept="image/jpeg,image/png,image/gif,image/webp" multiple class="sr-only" />
+          <p class="mt-1 text-[11px] text-taleon-muted">Até 3 imagens · máx. 10 MB · Supabase Storage. Falha no upload não impede o envio.</p>
+          <div id="image-preview-list" class="mt-2 hidden flex flex-wrap gap-2"></div>
         </div>
         <p id="similarity-checking" class="hidden text-xs text-taleon-gold">
           <i data-lucide="loader" class="inline h-3 w-3 animate-spin"></i> Verificando sugestões similares…
@@ -248,6 +252,14 @@
             <div>
               <label for="comment-content" class="mb-1 block text-xs text-taleon-muted">Comentário</label>
               <textarea required name="content" id="comment-content" rows="2" minlength="2" maxlength="2000" class="w-full rounded border border-taleon-border bg-taleon-card px-2 py-1.5 text-sm outline-none focus:border-taleon-gold" placeholder="Sua opinião…"></textarea>
+            </div>
+            <div>
+              <label for="comment-images" class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-taleon-border px-3 py-1.5 text-xs font-medium text-taleon-muted hover:border-taleon-gold hover:text-taleon-gold">
+                <i data-lucide="upload" class="h-3.5 w-3.5"></i>
+                Anexar print
+              </label>
+              <input type="file" id="comment-images" accept="image/jpeg,image/png,image/gif,image/webp" multiple class="sr-only" />
+              <div id="comment-image-preview-list" class="mt-2 hidden flex flex-wrap gap-2"></div>
             </div>
             <button type="submit" class="w-full rounded-lg border border-taleon-gold/40 bg-taleon-gold/10 py-2 text-sm font-semibold text-taleon-gold hover:bg-taleon-gold/20">Comentar</button>
           </form>

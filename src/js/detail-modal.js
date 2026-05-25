@@ -1,5 +1,10 @@
 // src/js/detail-modal.js
 import { fetchComments, createComment } from './comments.js';
+import {
+  bindCommentImageUpload,
+  clearPendingCommentImages,
+  getPendingCommentImageUrls,
+} from './storage-upload.js';
 import { escapeHtml, formatDate, worldBadge, renderImageGallery } from './utils.js';
 import { WORLD_COLORS } from './constants.js';
 
@@ -26,7 +31,8 @@ function renderCommentsList(comments) {
         </span>
         <time datetime="${c.created_at}">${formatDate(c.created_at)}</time>
       </div>
-      <p class="text-sm leading-relaxed">${escapeHtml(c.content)}</p>
+      <p class="text-sm leading-relaxed whitespace-pre-wrap">${escapeHtml(c.content)}</p>
+      ${renderImageGallery(c.image_urls, { size: 'detail' })}
     </article>
   `
     )
@@ -36,6 +42,7 @@ function renderCommentsList(comments) {
 
 export async function openDetailModal(suggestion) {
   currentSuggestion = suggestion;
+  clearPendingCommentImages();
   const modal = document.getElementById('modal-detail');
   if (!modal) return;
 
@@ -109,10 +116,13 @@ export function bindDetailModal() {
   const form = document.getElementById('form-comment');
   const closeBtns = document.querySelectorAll('[data-close-detail]');
 
+  bindCommentImageUpload();
+
   closeBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       modal?.classList.add('hidden');
       document.body.classList.remove('overflow-hidden');
+      clearPendingCommentImages();
       currentSuggestion = null;
     });
   });
@@ -127,8 +137,10 @@ export function bindDetailModal() {
         char_name: fd.get('char_name'),
         world: fd.get('world'),
         content: fd.get('content'),
+        image_urls: getPendingCommentImageUrls(),
       });
       form.reset();
+      clearPendingCommentImages();
       const comments = await fetchComments(currentSuggestion.id);
       renderCommentsList(comments);
       window.showToast?.('Comentário publicado!');

@@ -4,7 +4,7 @@ import { fetchBoardSuggestions, bindSuggestionForm } from './suggestions.js';
 import { renderBoard, setBoardRefreshCallback } from './board.js';
 import { bindDetailModal, bindCardDetailOpen } from './detail-modal.js';
 import { bindSimilarityFlow } from './similarity.js';
-import { bindImageUpload } from './imgur.js';
+import { bindSuggestionImageUpload } from './storage-upload.js';
 import { renderDashboards } from './charts.js';
 
 function showToast(message) {
@@ -59,7 +59,7 @@ async function init() {
   bindDetailModal();
   bindCardDetailOpen();
   bindSimilarityFlow();
-  bindImageUpload();
+  bindSuggestionImageUpload();
   window.onCommentAdded = () => loadBoard();
   await loadBoard();
 }

@@ -7,7 +7,10 @@ import {
   guardSubmitSimilarity,
   setAllowDuplicateSubmit,
 } from './similarity.js';
-import { getPendingImageUrls, clearPendingImages } from './imgur.js';
+import {
+  getPendingSuggestionImageUrls,
+  clearPendingSuggestionImages,
+} from './storage-upload.js';
 
 export async function fetchBoardSuggestions() {
   const supabase = getSupabase();
@@ -108,14 +111,14 @@ export function bindSuggestionForm(onSuccess) {
       title,
       description,
       similarity_group_id: getPendingSimilarityGroupId(),
-      image_urls: getPendingImageUrls(),
+      image_urls: getPendingSuggestionImageUrls(),
     };
 
     try {
       await createSuggestion(payload);
       setAllowDuplicateSubmit(false);
       clearPendingSimilarity();
-      clearPendingImages();
+      clearPendingSuggestionImages();
       form.reset();
       modal?.classList.add('hidden');
       document.body.classList.remove('overflow-hidden');
