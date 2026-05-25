@@ -119,7 +119,7 @@ Gráfico de Radar: Mostrando quais categorias recebem maior volume total de enga
 | **3** | Supabase no front, board, formulário `pending`, votos (localStorage + IP) | ✅ |
 | **4** | `admin.html`, aprovar/deletar, modal de comentários | ✅ |
 | **5** | `check-similarity` (Gemini) + Chart.js (doughnut SAN/AURA, radar) | ✅ |
-| **6** | Deploy Netlify `taleonfeedbacktracker` + `runtime-config.js` no build | ✅ |
+| **6** | Deploy GitHub Pages (Actions) + `runtime-config.js` no build | ✅ |
 | **7** | Prints: Supabase Storage `portal-images`, sugestões + comentários | ✅ |
 
 **Fase 7 — Supabase Storage (detalhe):**
@@ -135,7 +135,7 @@ Gráfico de Radar: Mostrando quais categorias recebem maior volume total de enga
 - [ ] Trocar senha admin padrão em `config.admin_password`.
 - [ ] CI GitHub Actions para `npm run test:e2e` (opcional).
 
-**Produção:** https://taleonfeedbacktracker.netlify.app — `npm run netlify:link` + `npm run deploy:netlify`.
+**Produção:** GitHub Pages — `https://canetex.github.io/TaleonFeedbackTracker/` (secrets `NEXT_PUBLIC_SUPABASE_*` no repositório).
 
 🧪 9. Processo de Testes Automatizados
 

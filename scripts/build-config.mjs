@@ -1,5 +1,5 @@
 /**
- * Gera arquivos de config Supabase para deploy (Netlify / local).
+ * Gera arquivos de config Supabase para deploy (GitHub Pages / local).
  */
 import { writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';

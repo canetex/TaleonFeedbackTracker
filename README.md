@@ -8,13 +8,13 @@ Portal de sugestões e feedback da comunidade Taleon, organizado em colunas esti
 |--------|------------|
 | **Frontend** | HTML5, [Tailwind CSS](https://tailwindcss.com/) (CDN), JavaScript vanilla (ES6+) |
 | **Backend / Banco** | [Supabase](https://supabase.com/) (PostgreSQL) |
-| **IA (similaridade)** | OpenAI GPT-4o-mini ou Google Gemini via Supabase Edge Functions |
+| **IA (similaridade)** | Google Gemini via Supabase Edge Functions |
 | **Gráficos** | [Chart.js](https://www.chartjs.org/) |
-| **Ícones** | Font Awesome ou Lucide (CDN) |
-| **Deploy** | [Netlify](https://taleonfeedbacktracker.netlify.app) — site `taleonfeedbacktracker` (CD GitHub) |
-| **Testes E2E** | Playwright ou Cypress (planejado) |
+| **Ícones** | Lucide (CDN) |
+| **Deploy** | [GitHub Pages](https://pages.github.com/) (GitHub Actions) |
+| **Testes E2E** | Playwright |
 
-Não há framework SPA (React, Vue, etc.): o projeto é estático e leve, ideal para deploy em Netlify.
+Não há framework SPA: o projeto é estático e leve, publicado via GitHub Pages.
 
 ## Identidade visual
 
@@ -28,178 +28,141 @@ Paleta alinhada ao site Taleon SAN (modo escuro):
 | Destaques / hover | `#c1a056` |
 | Texto principal | `#e6edf3` |
 | Texto secundário | `#7d8590` |
-| Badge mundo SAN | `#007bff` |
-| Badge mundo AURA | `#6f42c1` |
-
-Tipografia: **Inter** ou **Roboto** (sans-serif).
 
 ## Estrutura do repositório
 
 ```
-TaleonMelhorias/
-├── index.html          # Portal público (board Trello)
-├── admin.html          # Moderação (Fase 4)
-├── plan.md             # Plano de trabalho e roadmap
-├── src/
-│   ├── css/            # Estilos complementares (se necessário)
-│   └── js/             # Lógica Supabase, votos, IA, charts
-└── README.md
+├── index.html              # Portal público (board + formulário)
+├── admin.html              # Moderação (pendentes)
+├── src/js/                 # Módulos ES6
+├── supabase/migrations/    # SQL e políticas RLS
+├── scripts/                # build-config, E2E, secrets
+└── .github/workflows/      # Deploy GitHub Pages
 ```
-
-## Banco de dados (Supabase)
-
-### Tabela `suggestions`
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `created_at` | timestamptz | Data de criação |
-| `char_name` | text | Nome do personagem |
-| `world` | text | `SAN` ou `AURA` |
-| `category` | text | Uma das 5 categorias fixas |
-| `title` | text | Título da sugestão |
-| `description` | text | Descrição |
-| `status` | text | `pending` (default) ou `approved` |
-| `similarity_group_id` | uuid | Agrupamento por IA |
-
-### Tabela `votes`
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `suggestion_id` | uuid | FK → suggestions |
-| `ip_address` | text | Trava de voto único por IP |
-| `vote_type` | text | `up` ou `down` |
-
-### Tabela `comments`
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `suggestion_id` | uuid | FK → suggestions |
-| `char_name` | text | Autor do comentário |
-| `world` | text | Mundo do char |
-| `content` | text | Texto |
-| `created_at` | timestamptz | Data |
-
-### Tabela `config`
-
-Chaves e valores globais (ex.: senha do admin).
-
-**RLS:** leitura pública de sugestões `approved`; escrita com validação conforme políticas definidas na Fase 2.
-
-## Categorias do board (colunas)
-
-1. Melhorias de Qualidade de vida  
-2. Novas funcionalidades customizadas  
-3. Novas Funcionalidades do Global  
-4. Correções  
-5. Pendencias de implementação  
 
 ## Variáveis de ambiente
 
-Copie `.env.example` para `.env` (nunca commite `.env`):
+Copie `.env.example` para `.env` (nunca commite o `.env`).
 
-```env
-SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_ANON_KEY=sua-chave-anon
-# Opcional — Fase 5 (IA)
-OPENAI_API_KEY=
-# ou GEMINI_API_KEY=
-```
+| Variável | Obrigatória no build | Uso |
+|----------|----------------------|-----|
+| `NEXT_PUBLIC_SUPABASE_URL` ou `SUPABASE_URL` | Sim | URL do projeto Supabase |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` ou `SUPABASE_ANON_KEY` | Sim | Chave publishable (front-end) |
+| `NEXT_PUBLIC_SUPABASE_ANON_JWT` ou `SUPABASE_ANON_JWT` | Recomendada | JWT anon — Edge Functions com `verify_jwt` |
+| `ADMIN_SECRET_PASSWORD` | Local / E2E | Senha do painel admin |
+| `SUPABASE_PASSWORD` | Só local | `npm run db:apply` |
+| `SITE_BASE_PATH` | Só GitHub Pages | Ex.: `/TaleonFeedbackTracker/` — ver deploy abaixo |
 
-No Netlify, configure as mesmas variáveis em **Site settings → Environment variables**. A chave `anon` do Supabase é segura no front-end com RLS ativo.
+O comando `npm run build` gera `runtime-config.js` e `src/js/config.js` com essas chaves.
 
-## Admin e comentários (Fase 4)
+---
 
-- **Portal:** clique em um card para abrir detalhes e comentar.
-- **Admin:** [admin.html](admin.html) — senha mestra (`ADMIN_SECRET_PASSWORD` / `config.admin_password`).
+## Deploy — GitHub Pages
 
-## Roadmap de desenvolvimento
+Produção via **GitHub Actions** (workflow [`.github/workflows/deploy-github-pages.yml`](.github/workflows/deploy-github-pages.yml)). Cada push em `main` publica o site.
 
-| Fase | Escopo |
-|------|--------|
-| **1** | Layout estático Trello + paleta Taleon (`index.html` com dados mock) |
-| **2** | SQL Supabase + RLS |
-| **3** | Integração Supabase, formulário, votos |
-| **4** | `admin.html`, moderação, modal de comentários ✅ |
-| **5** | Similarity check (IA) + Chart.js ✅ |
-| **6** | Deploy Netlify ✅ |
-| **7** | Prints via Supabase Storage (`portal-images`, sugestões + comentários) ✅ |
+### Passo 1 — Ativar GitHub Pages no repositório
 
-Detalhes completos em [`plan.md`](plan.md).
+1. Abra o repositório no GitHub: **canetex/TaleonFeedbackTracker**
+2. **Settings** → **Pages**
+3. Em **Build and deployment** → **Source**, escolha **GitHub Actions** (não “Deploy from branch” manual)
+4. Salve. O primeiro deploy roda após o push do workflow ou em **Actions** → **Deploy GitHub Pages** → **Run workflow**
 
-## Configurar Supabase (Fase 2)
+### Passo 2 — Secrets (variáveis do Supabase no build)
 
-O schema já pode ser aplicado via **MCP Supabase** no Cursor (`apply_migration` / `execute_sql`) ou manualmente:
+**Settings** → **Secrets and variables** → **Actions** → **New repository secret**
 
-1. No [Supabase Dashboard](https://supabase.com/dashboard), abra **SQL Editor**, **ou**
-2. Use o MCP **user-supabase** autenticado no Cursor, **ou**
-3. Localmente: `npm run db:apply` (requer `SUPABASE_PASSWORD` no `.env`).
+Cadastre estes secrets (valores do [Supabase Dashboard](https://supabase.com/dashboard) → Project Settings → API):
 
-Arquivo de referência: [`supabase/migrations/001_initial_schema.sql`](supabase/migrations/001_initial_schema.sql).
+| Secret no GitHub | Valor no Supabase |
+|------------------|-------------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Project URL (`https://xxxx.supabase.co`) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave **publishable** (`sb_publishable_...`) |
+| `NEXT_PUBLIC_SUPABASE_ANON_JWT` | JWT **anon** legado (`eyJ...`, role anon) |
 
-A senha do admin fica em `config.admin_password` (sincronizada com `ADMIN_SECRET_PASSWORD` do `.env`).
+Alternativa: use os nomes `SUPABASE_URL`, `SUPABASE_ANON_KEY` e `SUPABASE_ANON_JWT` no `.env` local — no GitHub o workflow espera os nomes `NEXT_PUBLIC_*` acima.
 
-## Configurar o front-end (Fase 3)
+Não coloque no GitHub: `SUPABASE_PASSWORD`, `ADMIN_SECRET_PASSWORD`, `GEMINI_API_KEY` (estas ficam no Supabase Secrets ou só no seu PC).
 
-```bash
-cp src/js/config.example.js src/js/config.js
-```
+### Passo 3 — URL do site (caminho base)
 
-Edite `src/js/config.js` com `SUPABASE_URL` e `SUPABASE_ANON_KEY` (mesmos valores do `.env`).
+URL padrão de **project site**:
+
+`https://canetex.github.io/TaleonFeedbackTracker/`
+
+O workflow define automaticamente `SITE_BASE_PATH=/TaleonFeedbackTracker`.
+
+**Domínio customizado na raiz** (ex.: `https://feedback.taleon.com/`):
+
+1. **Settings** → **Pages** → **Custom domain** → informe o domínio e configure DNS (CNAME)
+2. **Settings** → **Secrets and variables** → **Actions** → aba **Variables**
+3. Crie a variável de repositório: `SITE_BASE_PATH` = `/`
+4. Rode o workflow novamente
+
+### Passo 4 — Conferir o deploy
+
+1. **Actions** → workflow **Deploy GitHub Pages** → job verde
+2. Abra a URL em **Settings** → **Pages**
+3. Portal: `.../TaleonFeedbackTracker/` (ou seu domínio)
+4. Admin: `.../TaleonFeedbackTracker/admin.html`
+
+Se aparecer o banner *“Configuração do Supabase indisponível”*, os secrets do passo 2 não foram aplicados ou o build falhou — veja os logs do job **Build**.
+
+### Migração desde Netlify
+
+- O deploy não usa mais Netlify (`netlify.toml` permanece só como referência legada).
+- Após o Pages estar no ar, desative ou remova o site na Netlify para evitar confusão de URLs.
+- Atualize links divulgados para a URL do GitHub Pages (ou domínio customizado).
+
+---
 
 ## Desenvolvimento local
 
-Use um servidor estático (módulos ES6 exigem HTTP):
-
 ```bash
+cp .env.example .env
+# Edite .env com URL e chaves Supabase
+
+npm install
+npm run build
 npx serve .
 ```
 
-## Deploy (Netlify)
+Abra `http://localhost:3000` (ou a porta do `serve`). Sem `npm run build`, `runtime-config.js` não existe e o banner de config aparece.
 
-**Site oficial (único):** [taleonfeedbacktracker.netlify.app](https://taleonfeedbacktracker.netlify.app)  
-Projeto Netlify: `taleonfeedbacktracker` — deploy contínuo a partir de `canetex/TaleonFeedbackTracker`.
+Testes E2E: `npm run test:e2e` (exige `.env` com Supabase e `E2E_ADMIN_PASSWORD`).
 
-Não use o site legado `taleon-feedback-tracker` (criado via CLI). Metadados fixos em `netlify-site.json`.
+---
 
-O projeto inclui `netlify.toml`. O build gera `src/js/config.js` a partir das variáveis:
+## Admin e comentários
 
-| Variável | Uso |
-|----------|-----|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave publishable (front-end) |
-| `NEXT_PUBLIC_SUPABASE_ANON_JWT` | JWT anon (Edge Functions com `verify_jwt`) |
+- **Portal:** clique no card → detalhes e comentários (após aprovação).
+- **Admin:** [admin.html](admin.html) — senha em `config.admin_password` / `ADMIN_SECRET_PASSWORD`.
 
-**GitHub (recomendado):** push em `main` dispara o build na Netlify.
+## Roadmap
 
-**CLI (somente no site oficial):**
+| Fase | Escopo |
+|------|--------|
+| **1–6** | Layout, Supabase, portal, admin, IA, dashboards, deploy | ✅ |
+| **7** | Prints via Supabase Storage | ✅ |
 
-```bash
-npm run netlify:link    # vincula a pasta ao site correto
-npm run deploy:netlify  # build + deploy --prod
-```
+Detalhes em [`plan.md`](plan.md).
 
-Não configure senhas de banco (`SUPABASE_PASSWORD`) nem `ADMIN_SECRET_PASSWORD` na Netlify — são apenas para backend/SQL local.
+## Configurar Supabase (schema)
 
-## Fase 7 — Prints (Supabase Storage)
+1. SQL Editor ou MCP Supabase: migrations em [`supabase/migrations/`](supabase/migrations/)
+2. Local: `npm run db:apply` (requer `SUPABASE_PASSWORD` no `.env`)
 
-1. Aplique a migration [`004_storage_portal_images.sql`](supabase/migrations/004_storage_portal_images.sql) no SQL Editor ou `npm run db:apply`.
-2. No Dashboard Supabase → **Storage**, confira o bucket público `portal-images`.
-3. No portal: botões **Enviar print** (nova sugestão) e **Anexar print** (comentários). Até 3 imagens × 10 MB (JPEG, PNG, GIF, WebP).
-
-## Fase 5 — IA e dashboards
-
-**Similaridade (Gemini):** ao sair do campo descrição no formulário, a Edge Function `check-similarity` compara com sugestões existentes. Configure o secret no Supabase:
+## Fase 5 — IA (Gemini)
 
 ```bash
-npx supabase secrets set GEMINI_API_KEY=sua-chave --project-ref ookdulhtbjrjmuzqitih
+npm run secrets:gemini
 ```
 
-Se a função ou a chave não estiver disponível, o portal usa comparação textual local como fallback.
+Requer `GEMINI_API_KEY` e `SUPABASE_ACCESS_TOKEN` no `.env`.
 
-**Chart.js:** três gráficos no rodapé do portal (categoria, mundos SAN/AURA, engajamento).
+## Fase 7 — Prints (Storage)
+
+Bucket `portal-images` (migration `004`). Upload no formulário e nos comentários.
 
 ## Licença
 

@@ -4,7 +4,7 @@
   "description": "Portal de sugestões e feedback da comunidade Taleon, organizado em colunas estilo Trello por categoria, com votação, comentários, moderação administrativa e dashboards analíticos.",
   "main": "index.js",
   "scripts": {
-    "build": "node scripts/build-config.mjs",
+    "build": "node scripts/build-config.mjs && node scripts/prepare-github-pages.mjs",
     "db:apply": "node scripts/apply-schema.mjs",
     "secrets:gemini": "node scripts/set-gemini-secret.mjs",
     "test:e2e": "node scripts/run-e2e.mjs",
