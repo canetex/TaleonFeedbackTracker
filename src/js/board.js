@@ -2,8 +2,7 @@
 import { CATEGORIES, WORLD_COLORS } from './constants.js';
 import {
   castVote,
-  hasVotedLocally,
-  hasRemainingVoteType,
+  canVoteOnSuggestion,
   validateVoteBeforeCast,
 } from './votes.js';
 import { escapeHtml, formatDate, worldBadge, normalizeImageUrls, renderImageThumb } from './utils.js';
@@ -25,17 +24,10 @@ function buildVoteControls(suggestion) {
     </div>`;
   }
 
-  const voted = hasVotedLocally(suggestion.id);
   const score = suggestion.vote_score ?? 0;
   const scorePrefix = score > 0 ? '+' : '';
-  const canUp = hasRemainingVoteType('up');
-  const canDown = hasRemainingVoteType('down');
-
-  if (voted) {
-    return `<div class="flex items-center gap-1 rounded-md border border-taleon-border bg-taleon-bg px-2 py-1">
-      <span class="text-sm font-bold text-taleon-gold">${scorePrefix}${score}</span>
-    </div>`;
-  }
+  const canUp = canVoteOnSuggestion(suggestion.id, 'up');
+  const canDown = canVoteOnSuggestion(suggestion.id, 'down');
 
   const upDisabled = canUp ? '' : ' disabled opacity-40 cursor-not-allowed';
   const downDisabled = canDown ? '' : ' disabled opacity-40 cursor-not-allowed';

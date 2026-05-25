@@ -32,12 +32,20 @@ const radarLayout = {
   aspectRatio: 1.25,
 };
 
+const LEADERBOARD_TOP_N = 10;
+
 function destroyCharts() {
-  for (const key of ['doughnut', 'worlds', 'radar']) {
+  for (const key of ['doughnut', 'worlds', 'radar', 'leaderboard']) {
     const inst = window.__taleonCharts?.[key];
     if (inst) inst.destroy();
   }
   window.__taleonCharts = {};
+}
+
+function truncateLabel(title, maxLen = 28) {
+  const t = (title || '').trim();
+  if (t.length <= maxLen) return t;
+  return `${t.slice(0, maxLen - 1)}…`;
 }
 
 export async function renderDashboards() {
@@ -145,6 +153,67 @@ export async function renderDashboards() {
           legend: {
             position: 'bottom',
             labels: { color: SITE_PALETTE.text, font: { size: 9 }, boxWidth: 10 },
+          },
+        },
+      },
+    });
+  }
+
+  const approved = suggestions.filter((s) => s.status === 'approved');
+  const leaderboard = [...approved]
+    .sort((a, b) => (b.vote_score ?? 0) - (a.vote_score ?? 0))
+    .slice(0, LEADERBOARD_TOP_N);
+
+  const leaderboardCtx = document.getElementById('chart-vote-leaderboard');
+  if (leaderboardCtx && leaderboard.length > 0) {
+    const scores = leaderboard.map((s) => s.vote_score ?? 0);
+    const barColors = scores.map((score) =>
+      score > 0
+        ? 'rgba(193, 160, 86, 0.85)'
+        : score < 0
+          ? 'rgba(125, 133, 144, 0.75)'
+          : 'rgba(48, 54, 61, 0.9)'
+    );
+
+    window.__taleonCharts.leaderboard = new Chart(leaderboardCtx, {
+      type: 'bar',
+      data: {
+        labels: leaderboard.map((s) => truncateLabel(s.title)),
+        datasets: [
+          {
+            label: 'Saldo (positivos − negativos)',
+            data: scores,
+            backgroundColor: barColors,
+            borderColor: SITE_PALETTE.border,
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items) => {
+                const idx = items[0]?.dataIndex ?? 0;
+                return leaderboard[idx]?.title ?? '';
+              },
+              label: (ctx) => `Saldo: ${ctx.parsed.x > 0 ? '+' : ''}${ctx.parsed.x}`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: { color: SITE_PALETTE.muted, font: { size: 9 } },
+            grid: { color: SITE_PALETTE.border },
+          },
+          y: {
+            ticks: { color: SITE_PALETTE.text, font: { size: 9 } },
+            grid: { display: false },
           },
         },
       },

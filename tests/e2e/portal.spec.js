@@ -46,9 +46,9 @@ test.describe('Feedback Portal Taleon', () => {
     await expect(page.getByText('PENDENTE APROVACAO').first()).toBeVisible();
   });
 
-  test('voto duplicado no mesmo card exibe aviso', async ({ page }) => {
+  test('limite de votos na mesma sugestão exibe aviso', async ({ page }) => {
     const approvedCard = page.locator('.suggestion-card').filter({
-      has: page.locator('[data-vote="up"]'),
+      has: page.locator('[data-vote="up"]:not([disabled])'),
     }).first();
     if ((await approvedCard.count()) === 0) {
       test.skip(true, 'Nenhum card aprovado com voto disponível');
@@ -61,10 +61,15 @@ test.describe('Feedback Portal Taleon', () => {
     }
 
     await page.evaluate((sid) => {
-      localStorage.setItem('taleon_voted_suggestions', JSON.stringify({ [sid]: 'up' }));
+      localStorage.setItem(
+        'taleon_voted_suggestions',
+        JSON.stringify({ [sid]: { up: 8, down: 0 } })
+      );
     }, suggestionId);
     await upBtn.click();
-    await expect(page.getByText(/já votou/i)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/8 votos deste tipo nesta sugestão/i)).toBeVisible({
+      timeout: 10_000,
+    });
   });
 
   test('título similar dispara modal de duplicidade', async ({ page }) => {
