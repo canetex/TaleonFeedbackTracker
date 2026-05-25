@@ -1,6 +1,11 @@
 // src/js/board.js
 import { CATEGORIES, WORLD_COLORS } from './constants.js';
-import { castVote, hasVotedLocally } from './votes.js';
+import {
+  castVote,
+  hasVotedLocally,
+  hasRemainingVoteType,
+  validateVoteBeforeCast,
+} from './votes.js';
 import { escapeHtml, formatDate, worldBadge, normalizeImageUrls, renderImageThumb } from './utils.js';
 
 const PENDING_LABEL = 'PENDENTE APROVACAO';
@@ -23,6 +28,8 @@ function buildVoteControls(suggestion) {
   const voted = hasVotedLocally(suggestion.id);
   const score = suggestion.vote_score ?? 0;
   const scorePrefix = score > 0 ? '+' : '';
+  const canUp = hasRemainingVoteType('up');
+  const canDown = hasRemainingVoteType('down');
 
   if (voted) {
     return `<div class="flex items-center gap-1 rounded-md border border-taleon-border bg-taleon-bg px-2 py-1">
@@ -30,12 +37,15 @@ function buildVoteControls(suggestion) {
     </div>`;
   }
 
+  const upDisabled = canUp ? '' : ' disabled opacity-40 cursor-not-allowed';
+  const downDisabled = canDown ? '' : ' disabled opacity-40 cursor-not-allowed';
+
   return `<div class="flex items-center gap-0.5 rounded-md border border-taleon-border bg-taleon-bg px-2 py-1" data-vote-wrap="${suggestion.id}">
-    <button type="button" data-vote="up" data-id="${suggestion.id}" class="rounded p-0.5 hover:bg-taleon-border" aria-label="Upvote">
+    <button type="button" data-vote="up" data-id="${suggestion.id}" class="rounded p-0.5 hover:bg-taleon-border"${upDisabled} aria-label="Upvote">
       <i data-lucide="thumbs-up" class="h-3.5 w-3.5 text-taleon-muted"></i>
     </button>
     <span class="min-w-[1.5rem] text-center text-sm font-bold text-taleon-gold" data-score="${suggestion.id}">${scorePrefix}${score}</span>
-    <button type="button" data-vote="down" data-id="${suggestion.id}" class="rounded p-0.5 hover:bg-taleon-border" aria-label="Downvote">
+    <button type="button" data-vote="down" data-id="${suggestion.id}" class="rounded p-0.5 hover:bg-taleon-border"${downDisabled} aria-label="Downvote">
       <i data-lucide="thumbs-down" class="h-3.5 w-3.5 text-taleon-muted"></i>
     </button>
   </div>`;
@@ -146,7 +156,9 @@ function bindVoteHandlers(refreshFn) {
       e.stopPropagation();
       const id = btn.dataset.id;
       const type = btn.dataset.vote;
+      if (btn.disabled) return;
       try {
+        validateVoteBeforeCast(id, type);
         await castVote(id, type);
         if (typeof refreshFn === 'function') await refreshFn();
       } catch (err) {

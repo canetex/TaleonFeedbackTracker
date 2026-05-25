@@ -6,6 +6,7 @@ import { bindDetailModal, bindCardDetailOpen } from './detail-modal.js';
 import { bindSimilarityFlow } from './similarity.js';
 import { bindSuggestionImageUpload } from './storage-upload.js';
 import { renderDashboards } from './charts.js';
+import { fetchVoteQuota, renderVoteQuotaHeader } from './votes.js';
 
 function showToast(message) {
   const toast = document.getElementById('toast');
@@ -40,6 +41,8 @@ async function loadBoard() {
 
   setLoading(true);
   try {
+    await fetchVoteQuota().catch((quotaErr) => console.warn('quota de votos:', quotaErr));
+    renderVoteQuotaHeader();
     const suggestions = await fetchBoardSuggestions();
     renderBoard(suggestions);
     const footer = document.querySelector('[data-app-footer]');
