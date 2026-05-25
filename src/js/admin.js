@@ -10,7 +10,7 @@ import {
   clearAdminPassword,
 } from './admin-api.js';
 import { escapeHtml, formatDate, worldBadge, renderImageGallery } from './utils.js';
-import { WORLD_COLORS } from './constants.js';
+import { CATEGORIES, WORLD_COLORS } from './constants.js';
 
 function showToast(message) {
   const toast = document.getElementById('toast');
@@ -31,11 +31,18 @@ function showPanel(panel) {
   document.getElementById('btn-admin-logout')?.classList.toggle('hidden', panel !== 'admin');
 }
 
+function categorySelectOptions(selected) {
+  return CATEGORIES.map(
+    (cat) =>
+      `<option value="${escapeHtml(cat)}"${cat === selected ? ' selected' : ''}>${escapeHtml(cat)}</option>`,
+  ).join('');
+}
+
 function renderPendingCard(item) {
   return `
     <article class="rounded-lg border border-taleon-border bg-taleon-card p-4" data-pending-id="${item.id}">
       <div class="mb-2 flex flex-wrap items-start justify-between gap-2">
-        <span class="text-xs font-medium text-taleon-gold">${escapeHtml(item.category)}</span>
+        <span class="text-xs text-taleon-muted">Categoria enviada: <span class="text-taleon-gold">${escapeHtml(item.category)}</span></span>
         ${worldBadge(item.world, WORLD_COLORS)}
       </div>
       <h3 class="mb-2 text-base font-bold">${escapeHtml(item.title)}</h3>
@@ -45,6 +52,16 @@ function renderPendingCard(item) {
         <i data-lucide="user" class="inline h-3 w-3"></i> ${escapeHtml(item.char_name)}
         · <time datetime="${item.created_at}">${formatDate(item.created_at)}</time>
       </p>
+      <div class="mb-3 rounded-lg border border-taleon-border bg-taleon-bg p-3">
+        <label class="mb-1 block text-xs font-medium text-taleon-muted" for="category-${item.id}">
+          Categoria no portal (ao aprovar)
+        </label>
+        <select
+          id="category-${item.id}"
+          data-category-select
+          class="w-full rounded-lg border border-taleon-border bg-taleon-card px-3 py-2 text-sm outline-none focus:border-taleon-gold"
+        >${categorySelectOptions(item.category)}</select>
+      </div>
       <div class="flex flex-wrap gap-2 border-t border-taleon-border pt-3">
         <button type="button" data-approve="${item.id}" class="inline-flex items-center gap-1 rounded-lg border border-green-600/40 bg-green-900/20 px-3 py-1.5 text-sm font-semibold text-green-400 hover:bg-green-900/40">
           <i data-lucide="check" class="h-4 w-4"></i> Aprovar
@@ -91,9 +108,15 @@ function bindPendingActions(password) {
   document.querySelectorAll('[data-approve]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.approve;
-      if (!confirm('Aprovar esta sugestão e publicá-la no portal?')) return;
+      const card = btn.closest('[data-pending-id]');
+      const category = card?.querySelector('[data-category-select]')?.value;
+      if (!category) {
+        showToast('Selecione uma categoria.');
+        return;
+      }
+      if (!confirm('Aprovar esta sugestão e publicá-la no portal com a categoria selecionada?')) return;
       try {
-        await approveSuggestion(password, id);
+        await approveSuggestion(password, id, category);
         showToast('Sugestão aprovada!');
         await loadPending();
       } catch (err) {

@@ -38,11 +38,12 @@ export async function fetchPendingSuggestions(password) {
   return data ?? [];
 }
 
-export async function approveSuggestion(password, suggestionId) {
+export async function approveSuggestion(password, suggestionId, category) {
   const supabase = getSupabase();
   const { error } = await supabase.rpc('admin_approve_suggestion', {
     p_password: password,
     p_suggestion_id: suggestionId,
+    p_category: category?.trim() || null,
   });
   if (error) throw error;
 }
