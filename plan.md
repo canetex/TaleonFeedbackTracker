@@ -180,7 +180,9 @@ Itens fora do escopo das fases 1–6; implementar após estabilização do porta
 
 **Dependências:** Fase 4 concluída; variável `IMGUR_CLIENT_ID` no `.env` / Netlify.
 
-**Estimativa de fase:** Fase 7 (Enhancement) — após Fase 5 (IA + Chart.js).
+**Estimativa de fase:** Fase 7 (Enhancement) — após Fase 5 (IA + Chart.js). ✅ Implementado (migration `003`, Edge Function `upload-imgur`, UI opcional no formulário).
+
+**Categoria extra:** `Ações de Marketing` (migration `003`, `constants.js`).
 
 🧪 9. Processo de Testes Automatizados
 Como estamos utilizando uma stack simplificada sem frameworks robustos (Node.js/React), os testes serão conduzidos via Playwright ou Cypress (executados localmente ou via GitHub Actions) focando em testes de ponta a ponta (E2E):

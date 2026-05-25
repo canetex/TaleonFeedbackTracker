@@ -1,19 +1,35 @@
 // src/js/charts.js
-import { CATEGORIES } from './constants.js';
+import {
+  CATEGORIES,
+  CATEGORY_CHART_COLORS,
+  SITE_PALETTE,
+  WORLD_COLORS,
+} from './constants.js';
 import { fetchBoardSuggestions } from './suggestions.js';
 
-const CHART_COLORS = [
-  '#c1a056',
-  '#007bff',
-  '#6f42c1',
-  '#3fb950',
-  '#d29922',
-  '#7d8590',
-];
-
 const chartDefaults = {
-  color: '#e6edf3',
-  borderColor: '#30363d',
+  color: SITE_PALETTE.text,
+  borderColor: SITE_PALETTE.border,
+};
+
+const doughnutLegend = {
+  position: 'bottom',
+  labels: { boxWidth: 10, font: { size: 9 }, color: SITE_PALETTE.text, padding: 8 },
+};
+
+const chartResponsive = {
+  responsive: true,
+  maintainAspectRatio: true,
+};
+
+const doughnutLayout = {
+  ...chartResponsive,
+  aspectRatio: 1.35,
+};
+
+const radarLayout = {
+  ...chartResponsive,
+  aspectRatio: 1.25,
 };
 
 function destroyCharts() {
@@ -39,8 +55,7 @@ export async function renderDashboards() {
   for (const s of suggestions) {
     if (byCategory[s.category] !== undefined) byCategory[s.category]++;
     if (byWorld[s.world] !== undefined) byWorld[s.world]++;
-    const eng =
-      Math.abs(s.vote_score ?? 0) + (s.comment_count ?? 0);
+    const eng = Math.abs(s.vote_score ?? 0) + (s.comment_count ?? 0);
     if (engagementByCategory[s.category] !== undefined) {
       engagementByCategory[s.category] += eng;
     }
@@ -58,40 +73,37 @@ export async function renderDashboards() {
         datasets: [
           {
             data: CATEGORIES.map((c) => byCategory[c]),
-            backgroundColor: CHART_COLORS,
+            backgroundColor: CATEGORY_CHART_COLORS,
+            borderColor: SITE_PALETTE.border,
             borderWidth: 1,
           },
         ],
       },
       options: {
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
-        },
+        ...doughnutLayout,
+        plugins: { legend: doughnutLegend },
       },
     });
   }
 
-  const worldsCtx = document.getElementById('chart-worlds-bar');
+  const worldsCtx = document.getElementById('chart-worlds-doughnut');
   if (worldsCtx) {
     window.__taleonCharts.worlds = new Chart(worldsCtx, {
-      type: 'bar',
+      type: 'doughnut',
       data: {
         labels: ['SAN', 'AURA'],
         datasets: [
           {
-            label: 'Sugestões',
             data: [byWorld.SAN, byWorld.AURA],
-            backgroundColor: ['#007bff', '#6f42c1'],
+            backgroundColor: [WORLD_COLORS.SAN, WORLD_COLORS.AURA],
+            borderColor: SITE_PALETTE.border,
+            borderWidth: 1,
           },
         ],
       },
       options: {
-        responsive: true,
-        scales: {
-          x: { stacked: true },
-          y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } },
-        },
-        plugins: { legend: { display: false } },
+        ...doughnutLayout,
+        plugins: { legend: doughnutLegend },
       },
     });
   }
@@ -106,22 +118,35 @@ export async function renderDashboards() {
           {
             label: 'Engajamento (votos + comentários)',
             data: CATEGORIES.map((c) => engagementByCategory[c]),
-            borderColor: '#c1a056',
+            borderColor: SITE_PALETTE.gold,
             backgroundColor: 'rgba(193, 160, 86, 0.25)',
-            pointBackgroundColor: '#c1a056',
+            pointBackgroundColor: SITE_PALETTE.gold,
+            pointBorderColor: SITE_PALETTE.border,
           },
         ],
       },
       options: {
+        ...radarLayout,
         scales: {
           r: {
             beginAtZero: true,
-            ticks: { stepSize: 1 },
-            grid: { color: '#30363d' },
-            angleLines: { color: '#30363d' },
+            ticks: {
+              stepSize: 1,
+              color: SITE_PALETTE.muted,
+              backdropColor: 'transparent',
+              font: { size: 8 },
+            },
+            grid: { color: SITE_PALETTE.border },
+            angleLines: { color: SITE_PALETTE.border },
+            pointLabels: { color: SITE_PALETTE.text, font: { size: 8 } },
           },
         },
-        plugins: { legend: { position: 'bottom' } },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: SITE_PALETTE.text, font: { size: 9 }, boxWidth: 10 },
+          },
+        },
       },
     });
   }

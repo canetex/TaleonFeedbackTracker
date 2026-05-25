@@ -1,14 +1,20 @@
 // src/js/suggestions.js
 import { getSupabase } from './supabase-client.js';
 import { CATEGORIES } from './constants.js';
-import { getPendingSimilarityGroupId, clearPendingSimilarity } from './similarity.js';
+import {
+  getPendingSimilarityGroupId,
+  clearPendingSimilarity,
+  guardSubmitSimilarity,
+  setAllowDuplicateSubmit,
+} from './similarity.js';
+import { getPendingImageUrls, clearPendingImages } from './imgur.js';
 
 export async function fetchBoardSuggestions() {
   const supabase = getSupabase();
 
   const { data: suggestions, error } = await supabase
     .from('suggestions')
-    .select('id, created_at, char_name, world, category, title, description, similarity_group_id, status')
+    .select('id, created_at, char_name, world, category, title, description, similarity_group_id, status, image_urls')
     .in('status', ['approved', 'pending'])
     .order('created_at', { ascending: false });
 
@@ -55,6 +61,7 @@ export async function createSuggestion(payload) {
     description: payload.description.trim(),
     status: 'pending',
     similarity_group_id: payload.similarity_group_id ?? null,
+    image_urls: payload.image_urls?.length ? payload.image_urls : [],
   });
 
   if (error) throw error;
@@ -88,18 +95,27 @@ export function bindSuggestionForm(onSuccess) {
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(form);
+    const title = String(fd.get('title') ?? '').trim();
+    const description = String(fd.get('description') ?? '').trim();
+
+    const canSubmit = await guardSubmitSimilarity(title, description);
+    if (!canSubmit) return;
+
     const payload = {
       char_name: fd.get('char_name'),
       world: fd.get('world'),
       category: fd.get('category'),
-      title: fd.get('title'),
-      description: fd.get('description'),
+      title,
+      description,
       similarity_group_id: getPendingSimilarityGroupId(),
+      image_urls: getPendingImageUrls(),
     };
 
     try {
       await createSuggestion(payload);
+      setAllowDuplicateSubmit(false);
       clearPendingSimilarity();
+      clearPendingImages();
       form.reset();
       modal?.classList.add('hidden');
       document.body.classList.remove('overflow-hidden');

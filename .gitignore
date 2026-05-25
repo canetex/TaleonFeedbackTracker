@@ -21,6 +21,11 @@ yarn-error.log*
 # Agentes / lock local
 .agents/
 skills-lock.json
+.netlify/
+
+# Playwright
+/playwright-report/
+/test-results/
 
 # Arquivos de Sistema e IDEs
 .DS_Store

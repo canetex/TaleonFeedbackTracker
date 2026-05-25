@@ -14,6 +14,10 @@ const key =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
   process.env.SUPABASE_ANON_KEY ||
   '';
+const jwtAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_JWT ||
+  process.env.SUPABASE_ANON_JWT ||
+  (key.startsWith('eyJ') ? key : '');
 
 if (!url || !key) {
   console.error(
@@ -26,9 +30,11 @@ const content = `// Gerado em build — não editar manualmente
 window.TALEON_CONFIG = {
   supabaseUrl: ${JSON.stringify(url)},
   supabaseAnonKey: ${JSON.stringify(key)},
+  supabaseJwtAnonKey: ${JSON.stringify(jwtAnonKey)},
 };
 window.NEXT_PUBLIC_SUPABASE_URL = ${JSON.stringify(url)};
 window.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = ${JSON.stringify(key)};
+window.NEXT_PUBLIC_SUPABASE_ANON_JWT = ${JSON.stringify(jwtAnonKey)};
 `;
 
 const jsDir = join(root, 'src', 'js');

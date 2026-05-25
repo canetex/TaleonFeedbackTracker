@@ -9,7 +9,7 @@ import {
   setAdminPassword,
   clearAdminPassword,
 } from './admin-api.js';
-import { escapeHtml, formatDate, worldBadge } from './utils.js';
+import { escapeHtml, formatDate, worldBadge, renderImageGallery } from './utils.js';
 import { WORLD_COLORS } from './constants.js';
 
 function showToast(message) {
@@ -40,6 +40,7 @@ function renderPendingCard(item) {
       </div>
       <h3 class="mb-2 text-base font-bold">${escapeHtml(item.title)}</h3>
       <p class="mb-3 text-sm text-taleon-muted whitespace-pre-wrap">${escapeHtml(item.description)}</p>
+      ${renderImageGallery(item.image_urls, { size: 'detail' })}
       <p class="mb-3 text-xs text-taleon-muted">
         <i data-lucide="user" class="inline h-3 w-3"></i> ${escapeHtml(item.char_name)}
         · <time datetime="${item.created_at}">${formatDate(item.created_at)}</time>

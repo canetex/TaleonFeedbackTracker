@@ -6,6 +6,8 @@
   NODE_VERSION = "20"
   NEXT_PUBLIC_SUPABASE_URL = "https://ookdulhtbjrjmuzqitih.supabase.co"
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4qKHrZPjqZZgVWW2bT3Yhw_NXEKioUA"
+  # JWT anon (legacy) — necessário para Edge Functions com verify_jwt
+  NEXT_PUBLIC_SUPABASE_ANON_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9va2R1bGh0Ympyam11enFpdGloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTQxNDksImV4cCI6MjA5NTI5MDE0OX0.5JNKZHXOma50PD6xbQd-p3rd7cc_KaeLs_g2x8xo0og"
 
 [[headers]]
   for = "/*"

@@ -26,8 +26,31 @@ export function isSupabaseConfigured() {
 
 export function getSupabaseConfig() {
   const cfg = window.TALEON_CONFIG || {};
+  const anonKey = cfg.supabaseAnonKey || window.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const jwtAnonKey =
+    cfg.supabaseJwtAnonKey ||
+    window.NEXT_PUBLIC_SUPABASE_ANON_JWT ||
+    (typeof anonKey === 'string' && anonKey.startsWith('eyJ') ? anonKey : '');
   return {
     supabaseUrl: cfg.supabaseUrl || window.NEXT_PUBLIC_SUPABASE_URL,
-    supabaseAnonKey: cfg.supabaseAnonKey || window.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    supabaseAnonKey: anonKey,
+    supabaseJwtAnonKey: jwtAnonKey,
   };
+}
+
+/** Cliente com JWT anon — obrigatório para supabase.functions.invoke (verify_jwt). */
+let functionsClient = null;
+let functionsClientKey = null;
+
+export function getSupabaseForFunctions() {
+  const { supabaseUrl, supabaseJwtAnonKey, supabaseAnonKey } = getSupabaseConfig();
+  const key = supabaseJwtAnonKey || supabaseAnonKey;
+  if (!supabaseUrl || !key) {
+    throw new Error('Configure supabaseJwtAnonKey (JWT anon) para chamar Edge Functions.');
+  }
+  if (!functionsClient || functionsClientKey !== key) {
+    functionsClient = createClient(supabaseUrl, key);
+    functionsClientKey = key;
+  }
+  return functionsClient;
 }

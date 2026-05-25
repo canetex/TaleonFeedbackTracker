@@ -1,6 +1,6 @@
 // src/js/detail-modal.js
 import { fetchComments, createComment } from './comments.js';
-import { escapeHtml, formatDate, worldBadge } from './utils.js';
+import { escapeHtml, formatDate, worldBadge, renderImageGallery } from './utils.js';
 import { WORLD_COLORS } from './constants.js';
 
 let currentSuggestion = null;
@@ -53,6 +53,12 @@ export async function openDetailModal(suggestion) {
     <span class="text-xs text-taleon-muted">· ${formatDate(suggestion.created_at)}</span>
   `;
   document.getElementById('detail-description').textContent = suggestion.description || '';
+  const galleryEl = document.getElementById('detail-images');
+  if (galleryEl) {
+    const galleryHtml = renderImageGallery(suggestion.image_urls, { size: 'detail' });
+    galleryEl.innerHTML = galleryHtml;
+    galleryEl.classList.toggle('hidden', !galleryHtml);
+  }
 
   const voteEl = document.getElementById('detail-vote-score');
   const voteWrap = document.getElementById('detail-vote-wrap');

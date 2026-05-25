@@ -40,6 +40,19 @@
     .board-scroll::-webkit-scrollbar-thumb:hover { background: #c1a056; }
     .suggestion-card { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
     .suggestion-card:hover { border-color: #c1a056; box-shadow: 0 0 0 1px #c1a05633; }
+    .dashboard-chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 20vh;
+      max-height: 20vh;
+      min-height: 7rem;
+    }
+    .dashboard-chart-wrap canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      max-height: 20vh;
+    }
   </style>
 </head>
 <body class="min-h-full bg-taleon-bg font-sans text-taleon-text antialiased">
@@ -84,23 +97,29 @@
 
     <div id="board" class="board-scroll flex gap-4 overflow-x-auto pb-4" aria-live="polite"></div>
 
-    <section id="dashboards-section" class="mt-10 rounded-xl border border-taleon-border bg-taleon-card p-6">
-      <h2 class="mb-6 flex items-center gap-2 text-lg font-bold">
+    <section id="dashboards-section" class="mt-8 rounded-xl border border-taleon-border bg-taleon-card p-4 sm:p-5">
+      <h2 class="mb-4 flex items-center gap-2 text-base font-bold sm:text-lg">
         <i data-lucide="bar-chart-2" class="h-5 w-5 text-taleon-gold"></i>
         Indicadores da comunidade
       </h2>
-      <div class="grid gap-8 lg:grid-cols-3">
-        <div class="rounded-lg border border-taleon-border bg-taleon-bg p-4">
-          <h3 class="mb-3 text-sm font-semibold text-taleon-muted">Por categoria</h3>
-          <canvas id="chart-category-doughnut" height="220"></canvas>
+      <div class="grid gap-4 sm:gap-6 lg:grid-cols-3">
+        <div class="rounded-lg border border-taleon-border bg-taleon-bg p-3 sm:p-4">
+          <h3 class="mb-2 text-xs font-semibold text-taleon-muted sm:text-sm">Por categoria</h3>
+          <div class="dashboard-chart-wrap">
+            <canvas id="chart-category-doughnut" role="img" aria-label="Gráfico de sugestões por categoria"></canvas>
+          </div>
         </div>
-        <div class="rounded-lg border border-taleon-border bg-taleon-bg p-4">
-          <h3 class="mb-3 text-sm font-semibold text-taleon-muted">SAN vs AURA</h3>
-          <canvas id="chart-worlds-bar" height="220"></canvas>
+        <div class="rounded-lg border border-taleon-border bg-taleon-bg p-3 sm:p-4">
+          <h3 class="mb-2 text-xs font-semibold text-taleon-muted sm:text-sm">SAN vs AURA</h3>
+          <div class="dashboard-chart-wrap">
+            <canvas id="chart-worlds-doughnut" role="img" aria-label="Gráfico SAN versus AURA"></canvas>
+          </div>
         </div>
-        <div class="rounded-lg border border-taleon-border bg-taleon-bg p-4">
-          <h3 class="mb-3 text-sm font-semibold text-taleon-muted">Engajamento por categoria</h3>
-          <canvas id="chart-engagement-radar" height="220"></canvas>
+        <div class="rounded-lg border border-taleon-border bg-taleon-bg p-3 sm:p-4">
+          <h3 class="mb-2 text-xs font-semibold text-taleon-muted sm:text-sm">Engajamento por categoria</h3>
+          <div class="dashboard-chart-wrap">
+            <canvas id="chart-engagement-radar" role="img" aria-label="Gráfico de engajamento por categoria"></canvas>
+          </div>
         </div>
       </div>
     </section>
@@ -144,6 +163,12 @@
         <div>
           <label for="description" class="mb-1 block text-xs font-medium text-taleon-muted">Descrição</label>
           <textarea required name="description" id="description" rows="4" minlength="10" maxlength="4000" class="w-full rounded-lg border border-taleon-border bg-taleon-bg px-3 py-2 text-sm outline-none focus:border-taleon-gold" placeholder="Descreva a sugestão com detalhes…"></textarea>
+        </div>
+        <div>
+          <label for="suggestion-images" class="mb-1 block text-xs font-medium text-taleon-muted">Imagens (opcional)</label>
+          <input type="file" id="suggestion-images" accept="image/jpeg,image/png,image/gif,image/webp" multiple class="w-full text-xs text-taleon-muted file:mr-2 file:rounded file:border-0 file:bg-taleon-gold/20 file:px-3 file:py-1.5 file:text-taleon-gold" />
+          <p class="mt-1 text-[11px] text-taleon-muted">Até 3 imagens · máx. 10 MB · JPEG, PNG, GIF ou WebP. Falha no upload não impede o envio.</p>
+          <div id="image-preview-list" class="mt-2 flex flex-wrap gap-2"></div>
         </div>
         <p id="similarity-checking" class="hidden text-xs text-taleon-gold">
           <i data-lucide="loader" class="inline h-3 w-3 animate-spin"></i> Verificando sugestões similares…
@@ -195,6 +220,7 @@
       </div>
       <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
         <p id="detail-description" class="text-sm leading-relaxed text-taleon-text whitespace-pre-wrap"></p>
+        <div id="detail-images" class="hidden"></div>
         <p id="detail-vote-wrap" class="text-xs text-taleon-muted">Saldo de votos: <span id="detail-vote-score" class="font-bold text-taleon-gold">0</span></p>
         <section>
           <h3 class="mb-3 flex items-center gap-2 text-sm font-bold">

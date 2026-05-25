@@ -1,7 +1,7 @@
 // src/js/board.js
 import { CATEGORIES, WORLD_COLORS } from './constants.js';
 import { castVote, hasVotedLocally } from './votes.js';
-import { escapeHtml, formatDate, worldBadge } from './utils.js';
+import { escapeHtml, formatDate, worldBadge, normalizeImageUrls, renderImageThumb } from './utils.js';
 
 const PENDING_LABEL = 'PENDENTE APROVACAO';
 
@@ -43,6 +43,10 @@ function buildVoteControls(suggestion) {
 
 function buildCard(suggestion) {
   const pending = isPendingApproval(suggestion);
+  const images = normalizeImageUrls(suggestion.image_urls);
+  const thumb = images.length
+    ? `<div class="mb-2">${renderImageThumb(images[0], 'h-14 w-full max-w-[120px]')}</div>`
+    : '';
   const desc = suggestion.description
     ? `<p class="mb-3 line-clamp-2 text-xs text-taleon-muted">${escapeHtml(suggestion.description)}</p>`
     : '';
@@ -64,6 +68,7 @@ function buildCard(suggestion) {
         ${worldBadge(suggestion.world, WORLD_COLORS)}
       </div>
       <h3 class="mb-2 font-bold leading-snug ${pending ? 'text-taleon-muted' : ''}">${escapeHtml(suggestion.title)}</h3>
+      ${thumb}
       ${desc}
       <footer class="flex items-center justify-between border-t border-taleon-border pt-2 text-xs text-taleon-muted">
         <span class="inline-flex items-center gap-1">
@@ -100,7 +105,7 @@ function buildColumn(category, items) {
       : '<p class="rounded-lg border border-dashed border-taleon-border px-3 py-6 text-center text-xs text-taleon-muted">Nenhuma sugestão nesta categoria</p>';
 
   return `
-    <section class="flex w-72 shrink-0 flex-col sm:w-80" aria-label="${escapeHtml(category)}">
+    <section class="flex w-64 shrink-0 flex-col sm:w-72" aria-label="${escapeHtml(category)}">
       <div class="mb-3 flex items-center ${isPendingCol ? 'gap-2' : 'justify-between gap-2'} rounded-lg border border-taleon-border bg-taleon-card px-3 py-2">
         ${headerIcon}
         <h2 class="${isPendingCol ? 'flex-1' : ''} text-sm font-bold leading-tight">${escapeHtml(category)}</h2>
