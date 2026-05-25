@@ -3,13 +3,22 @@ import { getSupabase } from './supabase-client.js';
 import { getClientIp } from './ip.js';
 import { STORAGE_VOTES_KEY } from './constants.js';
 
+function voteLimitMessage(kind, limit) {
+  const n = limit ?? current_quota?.limit_up ?? 15;
+  if (kind === 'up') {
+    return `Você atingiu o limite de ${n} votos positivos para este IP.`;
+  }
+  if (kind === 'down') {
+    return `Você atingiu o limite de ${n} votos negativos para este IP.`;
+  }
+  const per = limit ?? current_quota?.limit_per_suggestion ?? 15;
+  return `Você já usou os ${per} votos deste tipo nesta sugestão.`;
+}
+
 const RPC_ERROR_MESSAGES = {
-  vote_quota_exceeded_up:
-    'Você atingiu o limite de 8 votos positivos para este IP.',
-  vote_quota_exceeded_down:
-    'Você atingiu o limite de 8 votos negativos para este IP.',
-  vote_per_suggestion_exceeded:
-    'Você já usou os 8 votos deste tipo nesta sugestão.',
+  vote_quota_exceeded_up: () => voteLimitMessage('up', current_quota?.limit_up),
+  vote_quota_exceeded_down: () => voteLimitMessage('down', current_quota?.limit_down),
+  vote_per_suggestion_exceeded: () => voteLimitMessage('per'),
   suggestion_not_approved: 'Só é possível votar em sugestões aprovadas.',
   invalid_vote_type: 'Tipo de voto inválido.',
   invalid_ip_address: 'Não foi possível identificar o IP para votar.',
@@ -46,7 +55,7 @@ function normalizeQuota(raw) {
   return {
     limit_up: n('limit_up'),
     limit_down: n('limit_down'),
-    limit_per_suggestion: n('limit_per_suggestion') || 8,
+    limit_per_suggestion: n('limit_per_suggestion') || 15,
     used_up: n('used_up'),
     used_down: n('used_down'),
     remaining_up: n('remaining_up'),
@@ -56,7 +65,8 @@ function normalizeQuota(raw) {
 
 function rpcErrorMessage(error) {
   const code = String(error?.message || error?.details || '').trim();
-  if (RPC_ERROR_MESSAGES[code]) return RPC_ERROR_MESSAGES[code];
+  const msg = RPC_ERROR_MESSAGES[code];
+  if (msg) return typeof msg === 'function' ? msg() : msg;
   return error?.message || 'Erro ao registrar voto.';
 }
 
@@ -73,7 +83,7 @@ export function hasRemainingVoteType(voteType) {
 
 export function canVoteOnSuggestion(suggestionId, voteType) {
   if (!hasRemainingVoteType(voteType)) return false;
-  const limit = current_quota?.limit_per_suggestion ?? 8;
+  const limit = current_quota?.limit_per_suggestion ?? 15;
   const counts = getSuggestionVoteCounts(suggestionId);
   return counts[voteType] < limit;
 }
@@ -81,21 +91,21 @@ export function canVoteOnSuggestion(suggestionId, voteType) {
 /** @deprecated use canVoteOnSuggestion */
 export function hasVotedLocally(suggestionId) {
   const counts = getSuggestionVoteCounts(suggestionId);
-  const limit = current_quota?.limit_per_suggestion ?? 8;
+  const limit = current_quota?.limit_per_suggestion ?? 15;
   return counts.up >= limit && counts.down >= limit;
 }
 
 export function validateVoteBeforeCast(suggestionId, voteType) {
   if (!canVoteOnSuggestion(suggestionId, voteType)) {
     const counts = getSuggestionVoteCounts(suggestionId);
-    const limit = current_quota?.limit_per_suggestion ?? 8;
+    const limit = current_quota?.limit_per_suggestion ?? 15;
     if (counts[voteType] >= limit) {
-      throw new Error(RPC_ERROR_MESSAGES.vote_per_suggestion_exceeded);
+      throw new Error(RPC_ERROR_MESSAGES.vote_per_suggestion_exceeded());
     }
     throw new Error(
       voteType === 'up'
-        ? RPC_ERROR_MESSAGES.vote_quota_exceeded_up
-        : RPC_ERROR_MESSAGES.vote_quota_exceeded_down
+        ? RPC_ERROR_MESSAGES.vote_quota_exceeded_up()
+        : RPC_ERROR_MESSAGES.vote_quota_exceeded_down()
     );
   }
 }
@@ -133,6 +143,7 @@ export function renderVoteQuotaHeader() {
   if (downUsedEl) {
     downUsedEl.textContent = `${current_quota.used_down}/${current_quota.limit_down}`;
   }
+  wrap.title = `Votos restantes (máx. ${current_quota.limit_up} positivos e ${current_quota.limit_down} negativos por IP; até ${current_quota.limit_per_suggestion} do mesmo tipo na mesma sugestão)`;
   window.lucide?.createIcons();
 }
 

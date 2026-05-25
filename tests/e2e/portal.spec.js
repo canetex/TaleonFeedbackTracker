@@ -63,11 +63,11 @@ test.describe('Feedback Portal Taleon', () => {
     await page.evaluate((sid) => {
       localStorage.setItem(
         'taleon_voted_suggestions',
-        JSON.stringify({ [sid]: { up: 8, down: 0 } })
+        JSON.stringify({ [sid]: { up: 15, down: 0 } })
       );
     }, suggestionId);
     await upBtn.click();
-    await expect(page.getByText(/8 votos deste tipo nesta sugestão/i)).toBeVisible({
+    await expect(page.getByText(/15 votos deste tipo nesta sugestão/i)).toBeVisible({
       timeout: 10_000,
     });
   });
