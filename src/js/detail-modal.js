@@ -39,28 +39,60 @@ export async function openDetailModal(suggestion) {
   const modal = document.getElementById('modal-detail');
   if (!modal) return;
 
+  const pending = suggestion.status === 'pending';
+  const pendingBadge = pending
+    ? '<span class="rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-200 bg-amber-900/50 border border-amber-600/50">PENDENTE APROVACAO</span>'
+    : '';
+
   document.getElementById('detail-title').textContent = suggestion.title;
   document.getElementById('detail-meta').innerHTML = `
+    ${pendingBadge}
     ${worldBadge(suggestion.world, WORLD_COLORS)}
     <span class="text-xs text-taleon-muted">${escapeHtml(suggestion.category)}</span>
     <span class="text-xs text-taleon-muted">· ${escapeHtml(suggestion.char_name)}</span>
     <span class="text-xs text-taleon-muted">· ${formatDate(suggestion.created_at)}</span>
   `;
   document.getElementById('detail-description').textContent = suggestion.description || '';
-  document.getElementById('detail-vote-score').textContent =
-    suggestion.vote_score > 0 ? `+${suggestion.vote_score}` : String(suggestion.vote_score ?? 0);
+
+  const voteEl = document.getElementById('detail-vote-score');
+  const voteWrap = document.getElementById('detail-vote-wrap');
+  if (pending) {
+    voteWrap?.classList.add('hidden');
+  } else {
+    voteWrap?.classList.remove('hidden');
+    if (voteEl) {
+      voteEl.textContent =
+        suggestion.vote_score > 0 ? `+${suggestion.vote_score}` : String(suggestion.vote_score ?? 0);
+    }
+  }
+
+  const commentForm = document.getElementById('form-comment');
+  const commentPendingNotice = document.getElementById('detail-comments-pending-notice');
+  if (pending) {
+    commentForm?.classList.add('hidden');
+    commentPendingNotice?.classList.remove('hidden');
+  } else {
+    commentForm?.classList.remove('hidden');
+    commentPendingNotice?.classList.add('hidden');
+  }
 
   modal.classList.remove('hidden');
   document.body.classList.add('overflow-hidden');
 
   const list = document.getElementById('detail-comments-list');
-  if (list) list.innerHTML = '<p class="text-sm text-taleon-muted py-4 text-center">Carregando comentários…</p>';
-
-  try {
-    const comments = await fetchComments(suggestion.id);
-    renderCommentsList(comments);
-  } catch (err) {
-    if (list) list.innerHTML = `<p class="text-sm text-red-400 py-2">${escapeHtml(err.message)}</p>`;
+  if (pending) {
+    if (list) {
+      list.innerHTML =
+        '<p class="text-sm text-amber-200/90 py-4 text-center">Comentários e votos ficam disponíveis após aprovação da equipe.</p>';
+    }
+  } else {
+    if (list) list.innerHTML = '<p class="text-sm text-taleon-muted py-4 text-center">Carregando comentários…</p>';
+    try {
+      const comments = await fetchComments(suggestion.id);
+      renderCommentsList(comments);
+    } catch (err) {
+      if (list) list.innerHTML = `<p class="text-sm text-red-400 py-2">${escapeHtml(err.message)}</p>`;
+    }
   }
 
   window.lucide?.createIcons();

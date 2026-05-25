@@ -153,12 +153,15 @@
       </div>
       <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
         <p id="detail-description" class="text-sm leading-relaxed text-taleon-text whitespace-pre-wrap"></p>
-        <p class="text-xs text-taleon-muted">Saldo de votos: <span id="detail-vote-score" class="font-bold text-taleon-gold">0</span></p>
+        <p id="detail-vote-wrap" class="text-xs text-taleon-muted">Saldo de votos: <span id="detail-vote-score" class="font-bold text-taleon-gold">0</span></p>
         <section>
           <h3 class="mb-3 flex items-center gap-2 text-sm font-bold">
             <i data-lucide="message-square" class="h-4 w-4 text-taleon-gold"></i>
             Comentários
           </h3>
+          <p id="detail-comments-pending-notice" class="hidden mb-3 rounded-lg border border-amber-600/40 bg-amber-900/20 px-3 py-2 text-xs text-amber-200">
+            Esta sugestão aguarda aprovação. Comentários serão liberados após a moderação.
+          </p>
           <div id="detail-comments-list" class="mb-4 max-h-48 space-y-2 overflow-y-auto"></div>
           <form id="form-comment" class="space-y-3 rounded-lg border border-taleon-border bg-taleon-bg p-3">
             <div class="grid gap-3 sm:grid-cols-2">

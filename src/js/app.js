@@ -1,6 +1,6 @@
 // src/js/app.js
 import { isSupabaseConfigured } from './supabase-client.js';
-import { fetchApprovedSuggestions, bindSuggestionForm } from './suggestions.js';
+import { fetchBoardSuggestions, bindSuggestionForm } from './suggestions.js';
 import { renderBoard, setBoardRefreshCallback } from './board.js';
 import { bindDetailModal, bindCardDetailOpen } from './detail-modal.js';
 
@@ -37,7 +37,7 @@ async function loadBoard() {
 
   setLoading(true);
   try {
-    const suggestions = await fetchApprovedSuggestions();
+    const suggestions = await fetchBoardSuggestions();
     renderBoard(suggestions);
     const footer = document.querySelector('[data-app-footer]');
     if (footer) footer.textContent = 'Feedback Portal Taleon · Dados ao vivo (Supabase)';

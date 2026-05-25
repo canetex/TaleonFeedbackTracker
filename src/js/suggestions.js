@@ -2,42 +2,47 @@
 import { getSupabase } from './supabase-client.js';
 import { CATEGORIES } from './constants.js';
 
-export async function fetchApprovedSuggestions() {
+export async function fetchBoardSuggestions() {
   const supabase = getSupabase();
 
   const { data: suggestions, error } = await supabase
     .from('suggestions')
-    .select('id, created_at, char_name, world, category, title, description, similarity_group_id')
-    .eq('status', 'approved')
+    .select('id, created_at, char_name, world, category, title, description, similarity_group_id, status')
+    .in('status', ['approved', 'pending'])
     .order('created_at', { ascending: false });
 
   if (error) throw error;
   if (!suggestions?.length) return [];
 
-  const ids = suggestions.map((s) => s.id);
+  const approvedIds = suggestions.filter((s) => s.status === 'approved').map((s) => s.id);
 
-  const [{ data: votes }, { data: comments }] = await Promise.all([
-    supabase.from('votes').select('suggestion_id, vote_type').in('suggestion_id', ids),
-    supabase.from('comments').select('suggestion_id').in('suggestion_id', ids),
-  ]);
+  let scoreById = {};
+  let commentCountById = {};
 
-  const scoreById = {};
-  for (const id of ids) scoreById[id] = 0;
-  for (const v of votes ?? []) {
-    scoreById[v.suggestion_id] += v.vote_type === 'up' ? 1 : -1;
-  }
+  if (approvedIds.length > 0) {
+    const [{ data: votes }, { data: comments }] = await Promise.all([
+      supabase.from('votes').select('suggestion_id, vote_type').in('suggestion_id', approvedIds),
+      supabase.from('comments').select('suggestion_id').in('suggestion_id', approvedIds),
+    ]);
 
-  const commentCountById = {};
-  for (const c of comments ?? []) {
-    commentCountById[c.suggestion_id] = (commentCountById[c.suggestion_id] || 0) + 1;
+    for (const id of approvedIds) scoreById[id] = 0;
+    for (const v of votes ?? []) {
+      scoreById[v.suggestion_id] += v.vote_type === 'up' ? 1 : -1;
+    }
+    for (const c of comments ?? []) {
+      commentCountById[c.suggestion_id] = (commentCountById[c.suggestion_id] || 0) + 1;
+    }
   }
 
   return suggestions.map((s) => ({
     ...s,
-    vote_score: scoreById[s.id] ?? 0,
-    comment_count: commentCountById[s.id] ?? 0,
+    vote_score: s.status === 'approved' ? (scoreById[s.id] ?? 0) : 0,
+    comment_count: s.status === 'approved' ? (commentCountById[s.id] ?? 0) : 0,
   }));
 }
+
+/** @deprecated use fetchBoardSuggestions */
+export const fetchApprovedSuggestions = fetchBoardSuggestions;
 
 export async function createSuggestion(payload) {
   const supabase = getSupabase();
@@ -96,7 +101,7 @@ export function bindSuggestionForm(onSuccess) {
       modal?.classList.add('hidden');
       document.body.classList.remove('overflow-hidden');
       window.showToast?.(
-        'Sugestão enviada! Ela ficará pendente até aprovação da equipe.'
+        'Sugestão enviada! Aparece na Home como PENDENTE APROVACAO até a equipe aprovar.'
       );
       if (typeof onSuccess === 'function') onSuccess();
     } catch (err) {
