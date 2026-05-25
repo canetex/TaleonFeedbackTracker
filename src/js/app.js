@@ -3,6 +3,8 @@ import { isSupabaseConfigured } from './supabase-client.js';
 import { fetchBoardSuggestions, bindSuggestionForm } from './suggestions.js';
 import { renderBoard, setBoardRefreshCallback } from './board.js';
 import { bindDetailModal, bindCardDetailOpen } from './detail-modal.js';
+import { bindSimilarityFlow } from './similarity.js';
+import { renderDashboards } from './charts.js';
 
 function showToast(message) {
   const toast = document.getElementById('toast');
@@ -41,6 +43,7 @@ async function loadBoard() {
     renderBoard(suggestions);
     const footer = document.querySelector('[data-app-footer]');
     if (footer) footer.textContent = 'Feedback Portal Taleon · Dados ao vivo (Supabase)';
+    await renderDashboards();
   } catch (err) {
     showToast(err.message || 'Falha ao carregar sugestões.');
     console.error(err);
@@ -54,6 +57,7 @@ async function init() {
   bindSuggestionForm();
   bindDetailModal();
   bindCardDetailOpen();
+  bindSimilarityFlow();
   window.onCommentAdded = () => loadBoard();
   await loadBoard();
 }

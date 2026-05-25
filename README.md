@@ -123,8 +123,9 @@ No Netlify, configure as mesmas variáveis em **Site settings → Environment va
 | **2** | SQL Supabase + RLS |
 | **3** | Integração Supabase, formulário, votos |
 | **4** | `admin.html`, moderação, modal de comentários ✅ |
-| **5** | Similarity check (IA) + Chart.js |
-| **6** | Deploy Netlify |
+| **5** | Similarity check (IA) + Chart.js ✅ |
+| **6** | Deploy Netlify ✅ |
+| **7** *(backlog)* | Imagens nas sugestões via [Imgur API](https://apidocs.imgur.com/) — ver `plan.md` §10.1 |
 
 Detalhes completos em [`plan.md`](plan.md).
 
@@ -175,6 +176,18 @@ npx netlify deploy --prod
 **GitHub:** conecte `canetex/TaleonFeedbackTracker` na Netlify; o deploy contínuo usa o mesmo `netlify.toml`.
 
 Não configure senhas de banco (`SUPABASE_PASSWORD`) nem `ADMIN_SECRET_PASSWORD` na Netlify — são apenas para backend/SQL local.
+
+## Fase 5 — IA e dashboards
+
+**Similaridade (Gemini):** ao sair do campo descrição no formulário, a Edge Function `check-similarity` compara com sugestões existentes. Configure o secret no Supabase:
+
+```bash
+npx supabase secrets set GEMINI_API_KEY=sua-chave --project-ref ookdulhtbjrjmuzqitih
+```
+
+Se a função ou a chave não estiver disponível, o portal usa comparação textual local como fallback.
+
+**Chart.js:** três gráficos no rodapé do portal (categoria, mundos SAN/AURA, engajamento).
 
 ## Licença
 

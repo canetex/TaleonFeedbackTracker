@@ -135,6 +135,8 @@ export function bindDetailModal() {
   });
 }
 
+window.openDetailModal = openDetailModal;
+
 export function bindCardDetailOpen() {
   document.getElementById('board')?.addEventListener('click', (e) => {
     if (e.target.closest('[data-vote]') || e.target.closest('button')) return;

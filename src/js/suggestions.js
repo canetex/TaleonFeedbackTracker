@@ -1,6 +1,7 @@
 // src/js/suggestions.js
 import { getSupabase } from './supabase-client.js';
 import { CATEGORIES } from './constants.js';
+import { getPendingSimilarityGroupId, clearPendingSimilarity } from './similarity.js';
 
 export async function fetchBoardSuggestions() {
   const supabase = getSupabase();
@@ -93,10 +94,12 @@ export function bindSuggestionForm(onSuccess) {
       category: fd.get('category'),
       title: fd.get('title'),
       description: fd.get('description'),
+      similarity_group_id: getPendingSimilarityGroupId(),
     };
 
     try {
       await createSuggestion(payload);
+      clearPendingSimilarity();
       form.reset();
       modal?.classList.add('hidden');
       document.body.classList.remove('overflow-hidden');

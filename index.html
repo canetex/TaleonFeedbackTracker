@@ -32,6 +32,7 @@
     };
   </script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     .board-scroll::-webkit-scrollbar { height: 8px; }
     .board-scroll::-webkit-scrollbar-track { background: #161b22; border-radius: 4px; }
@@ -83,11 +84,25 @@
 
     <div id="board" class="board-scroll flex gap-4 overflow-x-auto pb-4" aria-live="polite"></div>
 
-    <section class="mt-10 rounded-xl border border-dashed border-taleon-border bg-taleon-card/50 p-6 text-center" aria-hidden="true">
-      <p class="text-sm text-taleon-muted">
-        <i data-lucide="bar-chart-2" class="inline h-4 w-4 mr-1 text-taleon-gold"></i>
-        Dashboards Chart.js — Fase 5
-      </p>
+    <section id="dashboards-section" class="mt-10 rounded-xl border border-taleon-border bg-taleon-card p-6">
+      <h2 class="mb-6 flex items-center gap-2 text-lg font-bold">
+        <i data-lucide="bar-chart-2" class="h-5 w-5 text-taleon-gold"></i>
+        Indicadores da comunidade
+      </h2>
+      <div class="grid gap-8 lg:grid-cols-3">
+        <div class="rounded-lg border border-taleon-border bg-taleon-bg p-4">
+          <h3 class="mb-3 text-sm font-semibold text-taleon-muted">Por categoria</h3>
+          <canvas id="chart-category-doughnut" height="220"></canvas>
+        </div>
+        <div class="rounded-lg border border-taleon-border bg-taleon-bg p-4">
+          <h3 class="mb-3 text-sm font-semibold text-taleon-muted">SAN vs AURA</h3>
+          <canvas id="chart-worlds-bar" height="220"></canvas>
+        </div>
+        <div class="rounded-lg border border-taleon-border bg-taleon-bg p-4">
+          <h3 class="mb-3 text-sm font-semibold text-taleon-muted">Engajamento por categoria</h3>
+          <canvas id="chart-engagement-radar" height="220"></canvas>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -130,12 +145,39 @@
           <label for="description" class="mb-1 block text-xs font-medium text-taleon-muted">Descrição</label>
           <textarea required name="description" id="description" rows="4" minlength="10" maxlength="4000" class="w-full rounded-lg border border-taleon-border bg-taleon-bg px-3 py-2 text-sm outline-none focus:border-taleon-gold" placeholder="Descreva a sugestão com detalhes…"></textarea>
         </div>
+        <p id="similarity-checking" class="hidden text-xs text-taleon-gold">
+          <i data-lucide="loader" class="inline h-3 w-3 animate-spin"></i> Verificando sugestões similares…
+        </p>
         <p class="text-xs text-taleon-muted">A sugestão ficará com status <strong>pendente</strong> até aprovação da equipe.</p>
         <div class="flex justify-end gap-2 border-t border-taleon-border pt-4">
           <button type="button" data-close-modal class="rounded-lg border border-taleon-border px-4 py-2 text-sm text-taleon-muted hover:bg-taleon-bg">Cancelar</button>
           <button type="submit" class="rounded-lg border border-taleon-gold/40 bg-taleon-gold/10 px-4 py-2 text-sm font-semibold text-taleon-gold hover:bg-taleon-gold/20">Enviar</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: sugestão similar (IA) -->
+  <div id="modal-similar" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true">
+    <div class="w-full max-w-md rounded-xl border border-taleon-gold/40 bg-taleon-card p-6 shadow-2xl">
+      <div class="mb-4 flex items-start gap-3">
+        <i data-lucide="sparkles" class="h-6 w-6 shrink-0 text-taleon-gold"></i>
+        <div>
+          <h2 class="text-lg font-bold">Sugestão parecida encontrada</h2>
+          <p class="mt-2 text-sm text-taleon-muted">
+            Parece que alguém já sugeriu algo parecido! Que tal dar um upvote na sugestão existente e comentar lá?
+          </p>
+          <p id="similar-existing-title" class="mt-2 rounded border border-taleon-border bg-taleon-bg px-2 py-1 text-sm font-semibold text-taleon-gold"></p>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <button type="button" id="btn-similar-create-anyway" data-close-similar class="rounded-lg border border-taleon-border px-4 py-2 text-sm text-taleon-muted hover:bg-taleon-bg">
+          Criar de qualquer forma
+        </button>
+        <button type="button" id="btn-similar-vote" class="rounded-lg border border-taleon-gold/40 bg-taleon-gold/10 px-4 py-2 text-sm font-semibold text-taleon-gold hover:bg-taleon-gold/20">
+          Ver sugestão existente
+        </button>
+      </div>
     </div>
   </div>
 

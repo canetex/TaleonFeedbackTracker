@@ -139,15 +139,48 @@ Desenvolver a tela admin.html com layout Trello modificado (exibindo apenas a co
 
 Criar a janela modal de detalhes da sugestão pública para permitir que usuários leiam e insiram comentários (vinculados a Char/Mundo).
 
-Fase 5: Inteligência Artificial & Dashboards
+Fase 5: Inteligência Artificial & Dashboards ✅
 
-Criar o fluxo de chamada de API da IA para o Similarity Check (onBlur do título).
+Criar o fluxo de chamada de API da IA para o Similarity Check (onBlur da descrição + Edge Function `check-similarity` / Gemini).
 
-Integrar a biblioteca Chart.js na base do portal puxando dados agregados do Supabase.
+Integrar a biblioteca Chart.js na base do portal puxando dados agregados do Supabase (rosca, barras SAN/AURA, radar de engajamento).
 
 Fase 6: Deploy Contínuo
 
 Subir os arquivos finais para o GitHub e realizar o deploy no Netlify.
+
+📋 10. Backlog de Melhorias (pós-MVP)
+
+Itens fora do escopo das fases 1–6; implementar após estabilização do portal em produção.
+
+### 10.1 Integração Imgur — imagens nas sugestões
+
+**Documentação:** [Imgur API](https://apidocs.imgur.com/)
+
+**Objetivo:** Permitir que o jogador anexe uma ou mais imagens (screenshot, mockup, evidência de bug) ao criar ou visualizar uma sugestão.
+
+**Escopo técnico sugerido:**
+
+| Item | Detalhe |
+|------|---------|
+| Autenticação | Registro de app em [api.imgur.com/oauth2/addclient](https://api.imgur.com/oauth2/addclient). Upload anônimo via header `Authorization: Client-ID {client_id}` (sem expor `client_secret` no front-end). |
+| Upload | `POST https://api.imgur.com/3/image` (multipart ou base64). Validar tamanho (ex.: máx. 10 MB) e tipos (`image/jpeg`, `image/png`, `image/gif`, `image/webp`). |
+| Onde no UI | Campo opcional no modal **Nova sugestão**; preview antes do envio; miniatura no card e galeria no modal de detalhes. |
+| Persistência | Migration Supabase: coluna `image_urls TEXT[]` em `suggestions` ou tabela `suggestion_images` (`suggestion_id`, `imgur_id`, `url`, `deletehash` opcional). |
+| Segurança | Preferir **Supabase Edge Function** como proxy de upload se for necessário `client_secret` ou sanitização extra; manter Client-ID apenas em variável de ambiente Netlify (`IMGUR_CLIENT_ID`). |
+| Moderação | Exibir imagens em `admin.html` na fila de pendentes; ocultar URLs quebradas após remoção no Imgur. |
+| Limites | Respeitar rate limit da API Imgur; feedback de erro amigável (“falha no upload, tente outra imagem”). |
+
+**Critérios de aceite:**
+
+1. Sugestão com imagem salva como `pending` inclui URL(s) acessível(s) após aprovação.
+2. Sugestão sem imagem continua funcionando como hoje.
+3. Falha de upload não impede enviar título/descrição (imagem opcional).
+4. Imagens só aparecem em sugestões `approved` (mesma regra RLS do texto).
+
+**Dependências:** Fase 4 concluída; variável `IMGUR_CLIENT_ID` no `.env` / Netlify.
+
+**Estimativa de fase:** Fase 7 (Enhancement) — após Fase 5 (IA + Chart.js).
 
 🧪 9. Processo de Testes Automatizados
 Como estamos utilizando uma stack simplificada sem frameworks robustos (Node.js/React), os testes serão conduzidos via Playwright ou Cypress (executados localmente ou via GitHub Actions) focando em testes de ponta a ponta (E2E):
