@@ -125,9 +125,15 @@ Detalhes completos em [`plan.md`](plan.md).
 
 ## Configurar Supabase (Fase 2)
 
-1. No [Supabase Dashboard](https://supabase.com/dashboard), abra **SQL Editor**.
-2. Cole e execute o conteúdo de [`supabase/migrations/001_initial_schema.sql`](supabase/migrations/001_initial_schema.sql).
-3. Altere a senha padrão do admin na tabela `config` (`admin_password`).
+O schema já pode ser aplicado via **MCP Supabase** no Cursor (`apply_migration` / `execute_sql`) ou manualmente:
+
+1. No [Supabase Dashboard](https://supabase.com/dashboard), abra **SQL Editor**, **ou**
+2. Use o MCP **user-supabase** autenticado no Cursor, **ou**
+3. Localmente: `npm run db:apply` (requer `SUPABASE_PASSWORD` no `.env`).
+
+Arquivo de referência: [`supabase/migrations/001_initial_schema.sql`](supabase/migrations/001_initial_schema.sql).
+
+A senha do admin fica em `config.admin_password` (sincronizada com `ADMIN_SECRET_PASSWORD` do `.env`).
 
 ## Configurar o front-end (Fase 3)
 
@@ -147,10 +153,23 @@ npx serve .
 
 ## Deploy (Netlify)
 
-1. Conecte o repositório GitHub à Netlify.  
-2. Build command: vazio (site estático).  
-3. Publish directory: raiz do projeto (ou pasta configurada).  
-4. Adicione `SUPABASE_URL` e `SUPABASE_ANON_KEY` nas variáveis de ambiente.
+O projeto inclui `netlify.toml`. O build gera `src/js/config.js` a partir das variáveis:
+
+| Variável | Uso |
+|----------|-----|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave publishable (front-end) |
+
+**CLI (produção):**
+
+```bash
+npm run build
+npx netlify deploy --prod
+```
+
+**GitHub:** conecte `canetex/TaleonFeedbackTracker` na Netlify; o deploy contínuo usa o mesmo `netlify.toml`.
+
+Não configure senhas de banco (`SUPABASE_PASSWORD`) nem `ADMIN_SECRET_PASSWORD` na Netlify — são apenas para backend/SQL local.
 
 ## Licença
 

@@ -6,18 +6,28 @@ let client = null;
 export function getSupabase() {
   if (client) return client;
 
-  const cfg = window.TALEON_CONFIG;
-  if (!cfg?.supabaseUrl || !cfg?.supabaseAnonKey) {
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig();
+  if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      'Configure src/js/config.js (copie de config.example.js) com SUPABASE_URL e SUPABASE_ANON_KEY.'
+      'Configure src/js/config.js ou variáveis NEXT_PUBLIC_SUPABASE_* com URL e chave publishable.'
     );
   }
 
-  client = createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  client = createClient(supabaseUrl, supabaseAnonKey);
   return client;
 }
 
 export function isSupabaseConfigured() {
-  const cfg = window.TALEON_CONFIG;
-  return Boolean(cfg?.supabaseUrl && cfg?.supabaseAnonKey && !cfg.supabaseUrl.includes('SEU_PROJETO'));
+  const cfg = window.TALEON_CONFIG || {};
+  const url = cfg.supabaseUrl || window.NEXT_PUBLIC_SUPABASE_URL;
+  const key = cfg.supabaseAnonKey || window.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  return Boolean(url && key && !String(url).includes('SEU_PROJETO'));
+}
+
+export function getSupabaseConfig() {
+  const cfg = window.TALEON_CONFIG || {};
+  return {
+    supabaseUrl: cfg.supabaseUrl || window.NEXT_PUBLIC_SUPABASE_URL,
+    supabaseAnonKey: cfg.supabaseAnonKey || window.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  };
 }

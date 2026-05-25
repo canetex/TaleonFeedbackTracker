@@ -4,6 +4,7 @@
   "description": "Portal de sugestões e feedback da comunidade Taleon, organizado em colunas estilo Trello por categoria, com votação, comentários, moderação administrativa e dashboards analíticos.",
   "main": "index.js",
   "scripts": {
+    "build": "node scripts/build-config.mjs",
     "db:apply": "node scripts/apply-schema.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

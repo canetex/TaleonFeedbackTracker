@@ -1,0 +1,11 @@
+node_modules
+.env
+.env.*
+!.env.example
+.agents
+skills-lock.json
+scripts
+supabase
+package-lock.json
+plan.md
+.git
