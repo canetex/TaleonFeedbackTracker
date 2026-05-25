@@ -1,0 +1,28 @@
+# Chaves e Variáveis de Ambiente (CRÍTICO: Nunca subir para o GitHub)
+.env
+.env.local
+.env.*.local
+
+# Dependências de Node / Ferramentas de Teste (Cypress, Playwright, etc.)
+node_modules/
+/dist/
+
+# Logs e Relatórios de Testes Automatizados
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/cypress/videos/
+/cypress/screenshots/
+/playwright-report/
+/test-results/
+
+# Arquivos de Sistema e IDEs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
