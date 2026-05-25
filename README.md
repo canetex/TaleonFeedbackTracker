@@ -110,6 +110,11 @@ OPENAI_API_KEY=
 
 No Netlify, configure as mesmas variáveis em **Site settings → Environment variables**. A chave `anon` do Supabase é segura no front-end com RLS ativo.
 
+## Admin e comentários (Fase 4)
+
+- **Portal:** clique em um card para abrir detalhes e comentar.
+- **Admin:** [admin.html](admin.html) — senha mestra (`ADMIN_SECRET_PASSWORD` / `config.admin_password`).
+
 ## Roadmap de desenvolvimento
 
 | Fase | Escopo |
@@ -117,7 +122,7 @@ No Netlify, configure as mesmas variáveis em **Site settings → Environment va
 | **1** | Layout estático Trello + paleta Taleon (`index.html` com dados mock) |
 | **2** | SQL Supabase + RLS |
 | **3** | Integração Supabase, formulário, votos |
-| **4** | `admin.html`, moderação, modal de comentários |
+| **4** | `admin.html`, moderação, modal de comentários ✅ |
 | **5** | Similarity check (IA) + Chart.js |
 | **6** | Deploy Netlify |
 

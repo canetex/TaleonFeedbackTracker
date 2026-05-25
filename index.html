@@ -58,14 +58,20 @@
           <p class="text-sm text-taleon-muted">Sugestões da comunidade — mundos SAN &amp; AURA</p>
         </div>
       </div>
-      <button
-        type="button"
-        id="btn-new-suggestion"
-        class="inline-flex items-center gap-2 rounded-lg border border-taleon-gold/40 bg-taleon-gold/10 px-4 py-2 text-sm font-semibold text-taleon-gold transition hover:bg-taleon-gold/20 hover:border-taleon-gold"
-      >
-        <i data-lucide="plus" class="h-4 w-4"></i>
-        Nova sugestão
-      </button>
+      <div class="flex flex-wrap items-center gap-2">
+        <a href="admin.html" class="inline-flex items-center gap-2 rounded-lg border border-taleon-border px-3 py-2 text-sm text-taleon-muted transition hover:border-taleon-gold hover:text-taleon-gold">
+          <i data-lucide="shield" class="h-4 w-4"></i>
+          Admin
+        </a>
+        <button
+          type="button"
+          id="btn-new-suggestion"
+          class="inline-flex items-center gap-2 rounded-lg border border-taleon-gold/40 bg-taleon-gold/10 px-4 py-2 text-sm font-semibold text-taleon-gold transition hover:bg-taleon-gold/20 hover:border-taleon-gold"
+        >
+          <i data-lucide="plus" class="h-4 w-4"></i>
+          Nova sugestão
+        </button>
+      </div>
     </div>
   </header>
 
@@ -130,6 +136,52 @@
           <button type="submit" class="rounded-lg border border-taleon-gold/40 bg-taleon-gold/10 px-4 py-2 text-sm font-semibold text-taleon-gold hover:bg-taleon-gold/20">Enviar</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: detalhes e comentários -->
+  <div id="modal-detail" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+    <div class="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-xl border border-taleon-border bg-taleon-card shadow-2xl">
+      <div class="flex shrink-0 items-start justify-between gap-3 border-b border-taleon-border px-5 py-4">
+        <div class="min-w-0 flex-1">
+          <h2 id="detail-title" class="text-lg font-bold leading-snug"></h2>
+          <div id="detail-meta" class="mt-2 flex flex-wrap items-center gap-2"></div>
+        </div>
+        <button type="button" data-close-detail class="shrink-0 rounded p-1 text-taleon-muted hover:bg-taleon-border" aria-label="Fechar">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        <p id="detail-description" class="text-sm leading-relaxed text-taleon-text whitespace-pre-wrap"></p>
+        <p class="text-xs text-taleon-muted">Saldo de votos: <span id="detail-vote-score" class="font-bold text-taleon-gold">0</span></p>
+        <section>
+          <h3 class="mb-3 flex items-center gap-2 text-sm font-bold">
+            <i data-lucide="message-square" class="h-4 w-4 text-taleon-gold"></i>
+            Comentários
+          </h3>
+          <div id="detail-comments-list" class="mb-4 max-h-48 space-y-2 overflow-y-auto"></div>
+          <form id="form-comment" class="space-y-3 rounded-lg border border-taleon-border bg-taleon-bg p-3">
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label for="comment-char" class="mb-1 block text-xs text-taleon-muted">Char</label>
+                <input required name="char_name" id="comment-char" maxlength="64" class="w-full rounded border border-taleon-border bg-taleon-card px-2 py-1.5 text-sm outline-none focus:border-taleon-gold" />
+              </div>
+              <div>
+                <label for="comment-world" class="mb-1 block text-xs text-taleon-muted">Mundo</label>
+                <select required name="world" id="comment-world" class="w-full rounded border border-taleon-border bg-taleon-card px-2 py-1.5 text-sm outline-none focus:border-taleon-gold">
+                  <option value="SAN">SAN</option>
+                  <option value="AURA">AURA</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="comment-content" class="mb-1 block text-xs text-taleon-muted">Comentário</label>
+              <textarea required name="content" id="comment-content" rows="2" minlength="2" maxlength="2000" class="w-full rounded border border-taleon-border bg-taleon-card px-2 py-1.5 text-sm outline-none focus:border-taleon-gold" placeholder="Sua opinião…"></textarea>
+            </div>
+            <button type="submit" class="w-full rounded-lg border border-taleon-gold/40 bg-taleon-gold/10 py-2 text-sm font-semibold text-taleon-gold hover:bg-taleon-gold/20">Comentar</button>
+          </form>
+        </section>
+      </div>
     </div>
   </div>
 

@@ -1,22 +1,7 @@
 // src/js/board.js
 import { CATEGORIES, WORLD_COLORS } from './constants.js';
 import { castVote, hasVotedLocally } from './votes.js';
-
-function formatDate(iso) {
-  const d = new Date(iso);
-  return d.toLocaleDateString('pt-BR');
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text ?? '';
-  return div.innerHTML;
-}
-
-function worldBadge(world) {
-  const color = WORLD_COLORS[world] || '#30363d';
-  return `<span class="rounded px-2 py-0.5 text-xs font-semibold text-white" style="background-color:${color}">${escapeHtml(world)}</span>`;
-}
+import { escapeHtml, formatDate, worldBadge } from './utils.js';
 
 function buildCard(suggestion) {
   const voted = hasVotedLocally(suggestion.id);
@@ -48,10 +33,10 @@ function buildCard(suggestion) {
   const cardBorder = isPendingCategory ? 'border-taleon-gold/30' : 'border-taleon-border';
 
   return `
-    <article class="suggestion-card rounded-lg border ${cardBorder} bg-taleon-card p-3" data-suggestion-id="${suggestion.id}">
+    <article class="suggestion-card cursor-pointer rounded-lg border ${cardBorder} bg-taleon-card p-3" data-suggestion-id="${suggestion.id}" title="Ver detalhes e comentários">
       <div class="mb-2 flex items-start justify-between gap-2">
         ${voteControls}
-        ${worldBadge(suggestion.world)}
+        ${worldBadge(suggestion.world, WORLD_COLORS)}
       </div>
       <h3 class="mb-2 font-bold leading-snug">${escapeHtml(suggestion.title)}</h3>
       ${desc}
@@ -98,6 +83,8 @@ export function renderBoard(suggestions) {
   const board = document.getElementById('board');
   if (!board) return;
 
+  window.__boardSuggestions = suggestions;
+
   const byCategory = Object.fromEntries(CATEGORIES.map((c) => [c, []]));
   for (const s of suggestions) {
     if (byCategory[s.category]) byCategory[s.category].push(s);
@@ -116,7 +103,8 @@ export function setBoardRefreshCallback(fn) {
 
 function bindVoteHandlers(refreshFn) {
   document.querySelectorAll('[data-vote]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
       const id = btn.dataset.id;
       const type = btn.dataset.vote;
       try {

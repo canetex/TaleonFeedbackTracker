@@ -2,6 +2,7 @@
 import { isSupabaseConfigured } from './supabase-client.js';
 import { fetchApprovedSuggestions, bindSuggestionForm } from './suggestions.js';
 import { renderBoard, setBoardRefreshCallback } from './board.js';
+import { bindDetailModal, bindCardDetailOpen } from './detail-modal.js';
 
 function showToast(message) {
   const toast = document.getElementById('toast');
@@ -51,6 +52,9 @@ async function loadBoard() {
 async function init() {
   setBoardRefreshCallback(loadBoard);
   bindSuggestionForm();
+  bindDetailModal();
+  bindCardDetailOpen();
+  window.onCommentAdded = () => loadBoard();
   await loadBoard();
 }
 

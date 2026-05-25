@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Feedback Portal Taleon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            taleon: {
+              bg: '#0a0e14',
+              card: '#161b22',
+              border: '#30363d',
+              gold: '#c1a056',
+              text: '#e6edf3',
+              muted: '#7d8590',
+            },
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        },
+      },
+    };
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="min-h-full bg-taleon-bg font-sans text-taleon-text antialiased">
+
+  <div id="config-banner" class="hidden border-b border-amber-600/40 bg-amber-900/30 px-4 py-2 text-center text-sm text-amber-200">
+    Configuração do Supabase indisponível.
+  </div>
+
+  <header class="border-b border-taleon-border bg-taleon-card/80">
+    <div class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-4 px-4 py-4">
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="text-taleon-muted hover:text-taleon-gold" aria-label="Voltar ao portal">
+          <i data-lucide="arrow-left" class="h-5 w-5"></i>
+        </a>
+        <div>
+          <h1 class="text-lg font-extrabold">Moderação Taleon</h1>
+          <p class="text-sm text-taleon-muted">Sugestões pendentes de aprovação</p>
+        </div>
+      </div>
+      <button type="button" id="btn-admin-logout" class="hidden text-sm text-taleon-muted hover:text-taleon-gold">
+        <i data-lucide="log-out" class="inline h-4 w-4"></i> Sair
+      </button>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-8">
+
+    <section id="panel-login" class="mx-auto max-w-sm">
+      <form id="form-admin-login" class="rounded-xl border border-taleon-border bg-taleon-card p-6 space-y-4">
+        <div class="flex items-center gap-2 text-taleon-gold">
+          <i data-lucide="lock" class="h-5 w-5"></i>
+          <h2 class="font-bold">Acesso administrativo</h2>
+        </div>
+        <p class="text-sm text-taleon-muted">Informe a senha mestra configurada no Supabase.</p>
+        <div>
+          <label for="admin-password" class="mb-1 block text-xs text-taleon-muted">Senha</label>
+          <input type="password" required name="password" id="admin-password" autocomplete="current-password" class="w-full rounded-lg border border-taleon-border bg-taleon-bg px-3 py-2 text-sm outline-none focus:border-taleon-gold" />
+        </div>
+        <button type="submit" class="w-full rounded-lg border border-taleon-gold/40 bg-taleon-gold/10 py-2 text-sm font-semibold text-taleon-gold hover:bg-taleon-gold/20">
+          Entrar
+        </button>
+      </form>
+    </section>
+
+    <section id="panel-admin" class="hidden">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="flex items-center gap-2 text-sm font-bold">
+          <i data-lucide="clock" class="h-4 w-4 text-taleon-gold"></i>
+          Pendentes
+          <span id="pending-count" class="rounded-full bg-taleon-gold/20 px-2 py-0.5 text-xs text-taleon-gold">0</span>
+        </h2>
+      </div>
+      <div id="pending-list" class="space-y-4"></div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="hidden fixed bottom-6 left-1/2 z-50 max-w-md -translate-x-1/2 rounded-lg border border-taleon-gold/40 bg-taleon-card px-4 py-3 text-sm shadow-lg opacity-0 transition-opacity duration-300">
+    <span id="toast-message"></span>
+  </div>
+
+  <script src="/runtime-config.js"></script>
+  <script type="module" src="src/js/admin.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
