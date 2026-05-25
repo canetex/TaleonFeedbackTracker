@@ -13,15 +13,16 @@ export function getSupabase() {
     );
   }
 
-  client = createClient(supabaseUrl, supabaseAnonKey);
+  const clientKey =
+    getSupabaseConfig().supabaseJwtAnonKey || supabaseAnonKey;
+  client = createClient(supabaseUrl, clientKey);
   return client;
 }
 
 export function isSupabaseConfigured() {
-  const cfg = window.TALEON_CONFIG || {};
-  const url = cfg.supabaseUrl || window.NEXT_PUBLIC_SUPABASE_URL;
-  const key = cfg.supabaseAnonKey || window.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  return Boolean(url && key && !String(url).includes('SEU_PROJETO'));
+  const { supabaseUrl, supabaseAnonKey, supabaseJwtAnonKey } = getSupabaseConfig();
+  const key = supabaseJwtAnonKey || supabaseAnonKey;
+  return Boolean(supabaseUrl && key && !String(supabaseUrl).includes('SEU_PROJETO'));
 }
 
 export function getSupabaseConfig() {

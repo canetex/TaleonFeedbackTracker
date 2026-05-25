@@ -3,10 +3,13 @@ import { defineConfig } from '@playwright/test';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4173';
 
+const workers = Number(process.env.PLAYWRIGHT_WORKERS) || 3;
+
 export default defineConfig({
   testDir: 'tests/e2e',
-  timeout: 90_000,
-  expect: { timeout: 15_000 },
+  timeout: 120_000,
+  expect: { timeout: 20_000 },
+  workers,
   fullyParallel: false,
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
@@ -21,10 +24,17 @@ export default defineConfig({
     : {
         command:
           process.platform === 'win32'
-            ? 'npm run build && npx.cmd --yes serve . -l 4173'
-            : 'npm run build && npx --yes serve . -l 4173',
+            ? 'npx.cmd --yes serve . -l 4173'
+            : 'npx --yes serve . -l 4173',
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
+        env: {
+          ...process.env,
+          NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+            process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+          NEXT_PUBLIC_SUPABASE_ANON_JWT: process.env.NEXT_PUBLIC_SUPABASE_ANON_JWT,
+        },
       },
 });

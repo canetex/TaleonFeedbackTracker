@@ -6,6 +6,7 @@
  *   PLAYWRIGHT_BASE_URL — URL do portal (default http://127.0.0.1:4173)
  *   E2E_ADMIN_PASSWORD — senha admin (testes de moderação)
  *   PLAYWRIGHT_SKIP_SERVER=1 — se o site já estiver rodando
+ *   PLAYWRIGHT_WORKERS — paralelismo (default 3)
  */
 import { spawnSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
@@ -26,8 +27,42 @@ if (existsSync(envPath)) {
   }
 }
 
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_URL) {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.SUPABASE_URL;
+}
+if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY && process.env.SUPABASE_ANON_KEY) {
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_ANON_KEY;
+}
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_JWT && process.env.SUPABASE_ANON_JWT) {
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_JWT = process.env.SUPABASE_ANON_JWT;
+}
+
 if (!process.env.E2E_ADMIN_PASSWORD && process.env.ADMIN_SECRET_PASSWORD) {
   process.env.E2E_ADMIN_PASSWORD = process.env.ADMIN_SECRET_PASSWORD;
+}
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+if (!supabaseUrl || !supabaseKey) {
+  console.error(
+    'E2E: defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY no .env (ou SUPABASE_URL / SUPABASE_ANON_KEY).',
+  );
+  process.exit(1);
+}
+
+const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const build = spawnSync(npm, ['run', 'build'], {
+  cwd: root,
+  stdio: 'inherit',
+  env: process.env,
+  shell: process.platform === 'win32',
+});
+if (build.status !== 0) process.exit(build.status ?? 1);
+
+const runtimeConfig = join(root, 'runtime-config.js');
+if (!existsSync(runtimeConfig)) {
+  console.error('E2E: runtime-config.js não foi gerado. Execute npm run build.');
+  process.exit(1);
 }
 
 const extraArgs = process.argv.slice(2).filter((a) => a !== '--');

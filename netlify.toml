@@ -1,3 +1,7 @@
+# Site oficial (único): https://taleonfeedbacktracker.netlify.app
+# ID: bedeb864-a061-4b09-b433-fda631102e73 — deploy via GitHub (canetex/TaleonFeedbackTracker)
+# Não usar taleon-feedback-tracker (legado CLI). Ver netlify-site.json
+
 [build]
   command = "npm run build"
   publish = "."

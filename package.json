@@ -9,7 +9,9 @@
     "secrets:gemini": "node scripts/set-gemini-secret.mjs",
     "test:e2e": "node scripts/run-e2e.mjs",
     "test:e2e:ui": "node scripts/run-e2e.mjs -- --ui",
-    "test": "npm run test:e2e"
+    "test": "npm run test:e2e",
+    "netlify:link": "node scripts/ensure-netlify-link.mjs",
+    "deploy:netlify": "node scripts/ensure-netlify-link.mjs && npm run build && npx netlify deploy --prod"
   },
   "keywords": [],
   "author": "",

@@ -119,6 +119,7 @@ export async function checkSimilarity(title, description) {
     } else if (data?.similar_id && UUID_RE.test(data.similar_id)) {
       pendingSimilarId = data.similar_id;
       return pendingSimilarId;
+    }
   } catch (err) {
     console.warn('check-similarity:', err);
   }

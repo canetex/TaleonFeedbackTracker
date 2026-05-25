@@ -1,0 +1,15 @@
+{
+  "site_name": "taleonfeedbacktracker",
+  "site_id": "bedeb864-a061-4b09-b433-fda631102e73",
+  "url": "https://taleonfeedbacktracker.netlify.app",
+  "admin_url": "https://app.netlify.com/projects/taleonfeedbacktracker",
+  "github_repo": "canetex/TaleonFeedbackTracker",
+  "deprecated_sites": [
+    {
+      "site_name": "taleon-feedback-tracker",
+      "site_id": "4fbe8bfe-15af-47ec-b7ff-ed83a8e82afb",
+      "url": "https://taleon-feedback-tracker.netlify.app",
+      "note": "Legado CLI — não usar; remover no painel Netlify se ainda existir"
+    }
+  ]
+}

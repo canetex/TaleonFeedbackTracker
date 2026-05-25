@@ -8,7 +8,7 @@ GitHub: Criar um repositório para o projeto. Estruturar com um README.md detalh
 
 Branching: Utilizar a branch main para simplicidade no desenvolvimento inicial.
 
-Netlify: Configurar o deploy contínuo (CD) diretamente conectado ao repositório GitHub.
+Netlify: Deploy contínuo (CD) no site **taleonfeedbacktracker** ([taleonfeedbacktracker.netlify.app](https://taleonfeedbacktracker.netlify.app)) conectado ao GitHub `canetex/TaleonFeedbackTracker`. Não usar o site legado `taleon-feedback-tracker` (CLI).
 
 2. Identidade Visual & UI (Inspirado em Taleon SAN)
 O portal deve herdar a sobriedade e a paleta de cores do site oficial, focando em legibilidade e imersão em modo escuro (Dark Mode).
@@ -145,9 +145,9 @@ Criar o fluxo de chamada de API da IA para o Similarity Check (onBlur da descri�
 
 Integrar a biblioteca Chart.js na base do portal puxando dados agregados do Supabase (rosca, barras SAN/AURA, radar de engajamento).
 
-Fase 6: Deploy Contínuo
+Fase 6: Deploy Contínuo ✅
 
-Subir os arquivos finais para o GitHub e realizar o deploy no Netlify.
+Produção: **https://taleonfeedbacktracker.netlify.app** (Netlify `taleonfeedbacktracker`, CD GitHub). CLI local: `npm run netlify:link` + `npm run deploy:netlify`.
 
 📋 10. Backlog de Melhorias (pós-MVP)
 

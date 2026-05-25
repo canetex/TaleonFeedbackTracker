@@ -11,7 +11,7 @@ Portal de sugestões e feedback da comunidade Taleon, organizado em colunas esti
 | **IA (similaridade)** | OpenAI GPT-4o-mini ou Google Gemini via Supabase Edge Functions |
 | **Gráficos** | [Chart.js](https://www.chartjs.org/) |
 | **Ícones** | Font Awesome ou Lucide (CDN) |
-| **Deploy** | [Netlify](https://www.netlify.com/) (CD a partir do GitHub) |
+| **Deploy** | [Netlify](https://taleonfeedbacktracker.netlify.app) — site `taleonfeedbacktracker` (CD GitHub) |
 | **Testes E2E** | Playwright ou Cypress (planejado) |
 
 Não há framework SPA (React, Vue, etc.): o projeto é estático e leve, ideal para deploy em Netlify.
@@ -159,21 +159,27 @@ npx serve .
 
 ## Deploy (Netlify)
 
+**Site oficial (único):** [taleonfeedbacktracker.netlify.app](https://taleonfeedbacktracker.netlify.app)  
+Projeto Netlify: `taleonfeedbacktracker` — deploy contínuo a partir de `canetex/TaleonFeedbackTracker`.
+
+Não use o site legado `taleon-feedback-tracker` (criado via CLI). Metadados fixos em `netlify-site.json`.
+
 O projeto inclui `netlify.toml`. O build gera `src/js/config.js` a partir das variáveis:
 
 | Variável | Uso |
 |----------|-----|
 | `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave publishable (front-end) |
+| `NEXT_PUBLIC_SUPABASE_ANON_JWT` | JWT anon (Edge Functions com `verify_jwt`) |
 
-**CLI (produção):**
+**GitHub (recomendado):** push em `main` dispara o build na Netlify.
+
+**CLI (somente no site oficial):**
 
 ```bash
-npm run build
-npx netlify deploy --prod
+npm run netlify:link    # vincula a pasta ao site correto
+npm run deploy:netlify  # build + deploy --prod
 ```
-
-**GitHub:** conecte `canetex/TaleonFeedbackTracker` na Netlify; o deploy contínuo usa o mesmo `netlify.toml`.
 
 Não configure senhas de banco (`SUPABASE_PASSWORD`) nem `ADMIN_SECRET_PASSWORD` na Netlify — são apenas para backend/SQL local.
 

@@ -44,7 +44,7 @@ async function loadBoard() {
     renderBoard(suggestions);
     const footer = document.querySelector('[data-app-footer]');
     if (footer) footer.textContent = 'Feedback Portal Taleon · Dados ao vivo (Supabase)';
-    await renderDashboards();
+    renderDashboards().catch((chartErr) => console.error(chartErr));
   } catch (err) {
     showToast(err.message || 'Falha ao carregar sugestões.');
     console.error(err);
