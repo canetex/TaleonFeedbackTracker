@@ -1,5 +1,5 @@
 /**
- * Gera src/js/config.js a partir das variáveis de ambiente (build Netlify / local).
+ * Gera arquivos de config Supabase para deploy (Netlify / local).
  */
 import { writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
@@ -22,9 +22,6 @@ if (!url || !key) {
   process.exit(1);
 }
 
-const outDir = join(root, 'src', 'js');
-mkdirSync(outDir, { recursive: true });
-
 const content = `// Gerado em build — não editar manualmente
 window.TALEON_CONFIG = {
   supabaseUrl: ${JSON.stringify(url)},
@@ -34,5 +31,8 @@ window.NEXT_PUBLIC_SUPABASE_URL = ${JSON.stringify(url)};
 window.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = ${JSON.stringify(key)};
 `;
 
-writeFileSync(join(outDir, 'config.js'), content, 'utf8');
-console.log('config.js gerado para deploy.');
+const jsDir = join(root, 'src', 'js');
+mkdirSync(jsDir, { recursive: true });
+writeFileSync(join(jsDir, 'config.js'), content, 'utf8');
+writeFileSync(join(root, 'runtime-config.js'), content, 'utf8');
+console.log('config.js e runtime-config.js gerados para deploy.');

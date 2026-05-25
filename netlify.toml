@@ -4,6 +4,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  NEXT_PUBLIC_SUPABASE_URL = "https://ookdulhtbjrjmuzqitih.supabase.co"
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4qKHrZPjqZZgVWW2bT3Yhw_NXEKioUA"
 
 [[headers]]
   for = "/*"
