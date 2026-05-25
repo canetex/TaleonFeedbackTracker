@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*.local
+src/js/config.js
 
 # Dependências de Node / Ferramentas de Teste (Cypress, Playwright, etc.)
 node_modules/

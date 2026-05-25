@@ -123,9 +123,23 @@ No Netlify, configure as mesmas variáveis em **Site settings → Environment va
 
 Detalhes completos em [`plan.md`](plan.md).
 
+## Configurar Supabase (Fase 2)
+
+1. No [Supabase Dashboard](https://supabase.com/dashboard), abra **SQL Editor**.
+2. Cole e execute o conteúdo de [`supabase/migrations/001_initial_schema.sql`](supabase/migrations/001_initial_schema.sql).
+3. Altere a senha padrão do admin na tabela `config` (`admin_password`).
+
+## Configurar o front-end (Fase 3)
+
+```bash
+cp src/js/config.example.js src/js/config.js
+```
+
+Edite `src/js/config.js` com `SUPABASE_URL` e `SUPABASE_ANON_KEY` (mesmos valores do `.env`).
+
 ## Desenvolvimento local
 
-Abra `index.html` diretamente no navegador ou use um servidor estático:
+Use um servidor estático (módulos ES6 exigem HTTP):
 
 ```bash
 npx serve .

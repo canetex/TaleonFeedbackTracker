@@ -33,32 +33,20 @@
   </script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    .board-scroll::-webkit-scrollbar {
-      height: 8px;
-    }
-    .board-scroll::-webkit-scrollbar-track {
-      background: #161b22;
-      border-radius: 4px;
-    }
-    .board-scroll::-webkit-scrollbar-thumb {
-      background: #30363d;
-      border-radius: 4px;
-    }
-    .board-scroll::-webkit-scrollbar-thumb:hover {
-      background: #c1a056;
-    }
-    .suggestion-card {
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    .suggestion-card:hover {
-      border-color: #c1a056;
-      box-shadow: 0 0 0 1px #c1a05633;
-    }
+    .board-scroll::-webkit-scrollbar { height: 8px; }
+    .board-scroll::-webkit-scrollbar-track { background: #161b22; border-radius: 4px; }
+    .board-scroll::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+    .board-scroll::-webkit-scrollbar-thumb:hover { background: #c1a056; }
+    .suggestion-card { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+    .suggestion-card:hover { border-color: #c1a056; box-shadow: 0 0 0 1px #c1a05633; }
   </style>
 </head>
 <body class="min-h-full bg-taleon-bg font-sans text-taleon-text antialiased">
 
-  <!-- Header -->
+  <div id="config-banner" class="hidden border-b border-amber-600/40 bg-amber-900/30 px-4 py-2 text-center text-sm text-amber-200">
+    Copie <code class="text-taleon-gold">src/js/config.example.js</code> para <code class="text-taleon-gold">src/js/config.js</code> e preencha as credenciais do Supabase.
+  </div>
+
   <header class="border-b border-taleon-border bg-taleon-card/80 backdrop-blur-sm sticky top-0 z-20">
     <div class="mx-auto flex max-w-[1920px] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
       <div class="flex items-center gap-3">
@@ -72,6 +60,7 @@
       </div>
       <button
         type="button"
+        id="btn-new-suggestion"
         class="inline-flex items-center gap-2 rounded-lg border border-taleon-gold/40 bg-taleon-gold/10 px-4 py-2 text-sm font-semibold text-taleon-gold transition hover:bg-taleon-gold/20 hover:border-taleon-gold"
       >
         <i data-lucide="plus" class="h-4 w-4"></i>
@@ -80,204 +69,77 @@
     </div>
   </header>
 
-  <main class="mx-auto max-w-[1920px] px-4 py-6 sm:px-6 lg:px-8">
+  <main class="relative mx-auto max-w-[1920px] px-4 py-6 sm:px-6 lg:px-8">
 
-    <!-- Board Trello — 5 colunas -->
-    <div class="board-scroll flex gap-4 overflow-x-auto pb-4">
-
-      <!-- Coluna 1: Qualidade de vida -->
-      <section class="flex w-72 shrink-0 flex-col sm:w-80" aria-label="Melhorias de Qualidade de vida">
-        <div class="mb-3 flex items-center justify-between gap-2 rounded-lg border border-taleon-border bg-taleon-card px-3 py-2">
-          <h2 class="text-sm font-bold leading-tight">Melhorias de Qualidade de vida</h2>
-          <span class="rounded-full bg-taleon-border px-2 py-0.5 text-xs font-medium text-taleon-muted">2</span>
-        </div>
-        <div class="flex flex-1 flex-col gap-3">
-
-          <article class="suggestion-card rounded-lg border border-taleon-border bg-taleon-card p-3">
-            <div class="mb-2 flex items-start justify-between gap-2">
-              <div class="flex items-center gap-1 rounded-md border border-taleon-border bg-taleon-bg px-2 py-1">
-                <i data-lucide="thumbs-up" class="h-3.5 w-3.5 text-green-500"></i>
-                <span class="text-sm font-bold text-taleon-gold">+12</span>
-              </div>
-              <span class="rounded px-2 py-0.5 text-xs font-semibold text-white" style="background-color: #007bff">SAN</span>
-            </div>
-            <h3 class="mb-2 font-bold leading-snug">Atalho para depot no market</h3>
-            <p class="mb-3 line-clamp-2 text-xs text-taleon-muted">Botão rápido no NPC de market para abrir o depot sem sair da janela.</p>
-            <footer class="flex items-center justify-between border-t border-taleon-border pt-2 text-xs text-taleon-muted">
-              <span class="inline-flex items-center gap-1"><i data-lucide="user" class="h-3 w-3"></i> Sir Galahad</span>
-              <time datetime="2026-05-20">20/05/2026</time>
-            </footer>
-          </article>
-
-          <article class="suggestion-card rounded-lg border border-taleon-border bg-taleon-card p-3">
-            <div class="mb-2 flex items-start justify-between gap-2">
-              <div class="flex items-center gap-1 rounded-md border border-taleon-border bg-taleon-bg px-2 py-1">
-                <i data-lucide="thumbs-up" class="h-3.5 w-3.5 text-green-500"></i>
-                <span class="text-sm font-bold text-taleon-gold">+5</span>
-              </div>
-              <span class="rounded px-2 py-0.5 text-xs font-semibold text-white" style="background-color: #6f42c1">AURA</span>
-            </div>
-            <h3 class="mb-2 font-bold leading-snug">Filtro de loot no autoloot</h3>
-            <footer class="flex items-center justify-between border-t border-taleon-border pt-2 text-xs text-taleon-muted">
-              <span class="inline-flex items-center gap-1"><i data-lucide="user" class="h-3 w-3"></i> Mystic Druid</span>
-              <time datetime="2026-05-18">18/05/2026</time>
-            </footer>
-          </article>
-
-        </div>
-      </section>
-
-      <!-- Coluna 2: Funcionalidades customizadas -->
-      <section class="flex w-72 shrink-0 flex-col sm:w-80" aria-label="Novas funcionalidades customizadas">
-        <div class="mb-3 flex items-center justify-between gap-2 rounded-lg border border-taleon-border bg-taleon-card px-3 py-2">
-          <h2 class="text-sm font-bold leading-tight">Novas funcionalidades customizadas</h2>
-          <span class="rounded-full bg-taleon-border px-2 py-0.5 text-xs font-medium text-taleon-muted">1</span>
-        </div>
-        <div class="flex flex-1 flex-col gap-3">
-
-          <article class="suggestion-card rounded-lg border border-taleon-border bg-taleon-card p-3">
-            <div class="mb-2 flex items-start justify-between gap-2">
-              <div class="flex items-center gap-1 rounded-md border border-taleon-border bg-taleon-bg px-2 py-1">
-                <i data-lucide="thumbs-down" class="h-3.5 w-3.5 text-red-400"></i>
-                <span class="text-sm font-bold text-taleon-gold">-1</span>
-              </div>
-              <span class="rounded px-2 py-0.5 text-xs font-semibold text-white" style="background-color: #007bff">SAN</span>
-            </div>
-            <h3 class="mb-2 font-bold leading-snug">Sistema de guild wars agendadas</h3>
-            <p class="mb-3 line-clamp-2 text-xs text-taleon-muted">Agendar batalhas entre guilds com recompensas e ranking sazonal.</p>
-            <footer class="flex items-center justify-between border-t border-taleon-border pt-2 text-xs text-taleon-muted">
-              <span class="inline-flex items-center gap-1">
-                <i data-lucide="user" class="h-3 w-3"></i> Warlord King
-                <i data-lucide="message-square" class="ml-1 h-3 w-3 text-taleon-gold" title="Comentários"></i>
-              </span>
-              <time datetime="2026-05-15">15/05/2026</time>
-            </footer>
-          </article>
-
-        </div>
-      </section>
-
-      <!-- Coluna 3: Funcionalidades do Global -->
-      <section class="flex w-72 shrink-0 flex-col sm:w-80" aria-label="Novas Funcionalidades do Global">
-        <div class="mb-3 flex items-center justify-between gap-2 rounded-lg border border-taleon-border bg-taleon-card px-3 py-2">
-          <h2 class="text-sm font-bold leading-tight">Novas Funcionalidades do Global</h2>
-          <span class="rounded-full bg-taleon-border px-2 py-0.5 text-xs font-medium text-taleon-muted">1</span>
-        </div>
-        <div class="flex flex-1 flex-col gap-3">
-
-          <article class="suggestion-card rounded-lg border border-taleon-border bg-taleon-card p-3">
-            <div class="mb-2 flex items-start justify-between gap-2">
-              <div class="flex items-center gap-1 rounded-md border border-taleon-border bg-taleon-bg px-2 py-1">
-                <i data-lucide="thumbs-up" class="h-3.5 w-3.5 text-green-500"></i>
-                <span class="text-sm font-bold text-taleon-gold">+28</span>
-              </div>
-              <span class="inline-flex items-center gap-0.5">
-                <span class="rounded px-2 py-0.5 text-xs font-semibold text-white" style="background-color: #007bff">SAN</span>
-                <span class="rounded px-2 py-0.5 text-xs font-semibold text-white" style="background-color: #6f42c1">AURA</span>
-              </span>
-            </div>
-            <h3 class="mb-2 font-bold leading-snug">Prey com bônus configurável</h3>
-            <p class="mb-3 line-clamp-2 text-xs text-taleon-muted">Trazer mecânica similar ao global com ajustes para o balance Taleon.</p>
-            <footer class="flex items-center justify-between border-t border-taleon-border pt-2 text-xs text-taleon-muted">
-              <span class="inline-flex items-center gap-1"><i data-lucide="map-pin" class="h-3 w-3"></i> Community Vote</span>
-              <time datetime="2026-05-10">10/05/2026</time>
-            </footer>
-          </article>
-
-        </div>
-      </section>
-
-      <!-- Coluna 4: Correções -->
-      <section class="flex w-72 shrink-0 flex-col sm:w-80" aria-label="Correções">
-        <div class="mb-3 flex items-center justify-between gap-2 rounded-lg border border-taleon-border bg-taleon-card px-3 py-2">
-          <h2 class="text-sm font-bold leading-tight">Correções</h2>
-          <span class="rounded-full bg-taleon-border px-2 py-0.5 text-xs font-medium text-taleon-muted">2</span>
-        </div>
-        <div class="flex flex-1 flex-col gap-3">
-
-          <article class="suggestion-card rounded-lg border border-taleon-border bg-taleon-card p-3">
-            <div class="mb-2 flex items-start justify-between gap-2">
-              <div class="flex items-center gap-1 rounded-md border border-taleon-border bg-taleon-bg px-2 py-1">
-                <i data-lucide="thumbs-up" class="h-3.5 w-3.5 text-green-500"></i>
-                <span class="text-sm font-bold text-taleon-gold">+7</span>
-              </div>
-              <span class="rounded px-2 py-0.5 text-xs font-semibold text-white" style="background-color: #6f42c1">AURA</span>
-            </div>
-            <h3 class="mb-2 font-bold leading-snug">Crash ao abrir stash em PZ</h3>
-            <p class="mb-3 line-clamp-2 text-xs text-taleon-muted">Cliente fecha ao abrir stash em certas protection zones no AURA.</p>
-            <footer class="flex items-center justify-between border-t border-taleon-border pt-2 text-xs text-taleon-muted">
-              <span class="inline-flex items-center gap-1"><i data-lucide="user" class="h-3 w-3"></i> Bug Hunter</span>
-              <time datetime="2026-05-22">22/05/2026</time>
-            </footer>
-          </article>
-
-          <article class="suggestion-card rounded-lg border border-taleon-border bg-taleon-card p-3">
-            <div class="mb-2 flex items-start justify-between gap-2">
-              <div class="flex items-center gap-0.5 rounded-md border border-taleon-border bg-taleon-bg px-2 py-1">
-                <button type="button" class="rounded p-0.5 hover:bg-taleon-border" aria-label="Upvote">
-                  <i data-lucide="thumbs-up" class="h-3.5 w-3.5 text-taleon-muted"></i>
-                </button>
-                <span class="min-w-[1.5rem] text-center text-sm font-bold text-taleon-gold">0</span>
-                <button type="button" class="rounded p-0.5 hover:bg-taleon-border" aria-label="Downvote">
-                  <i data-lucide="thumbs-down" class="h-3.5 w-3.5 text-taleon-muted"></i>
-                </button>
-              </div>
-              <span class="rounded px-2 py-0.5 text-xs font-semibold text-white" style="background-color: #007bff">SAN</span>
-            </div>
-            <h3 class="mb-2 font-bold leading-snug">Descrição de runa incorreta no cyclopedia</h3>
-            <footer class="flex items-center justify-between border-t border-taleon-border pt-2 text-xs text-taleon-muted">
-              <span class="inline-flex items-center gap-1"><i data-lucide="user" class="h-3 w-3"></i> Rune Master</span>
-              <time datetime="2026-05-24">24/05/2026</time>
-            </footer>
-          </article>
-
-        </div>
-      </section>
-
-      <!-- Coluna 5: Pendências -->
-      <section class="flex w-72 shrink-0 flex-col sm:w-80" aria-label="Pendencias de implementação">
-        <div class="mb-3 flex items-center gap-2 rounded-lg border border-taleon-border bg-taleon-card px-3 py-2">
-          <i data-lucide="alert-circle" class="h-4 w-4 shrink-0 text-taleon-gold"></i>
-          <h2 class="flex-1 text-sm font-bold leading-tight">Pendencias de implementação</h2>
-          <span class="rounded-full bg-taleon-gold/20 px-2 py-0.5 text-xs font-medium text-taleon-gold">1</span>
-        </div>
-        <div class="flex flex-1 flex-col gap-3">
-
-          <article class="suggestion-card rounded-lg border border-taleon-gold/30 bg-taleon-card p-3">
-            <div class="mb-2 flex items-start justify-between gap-2">
-              <div class="flex items-center gap-1 rounded-md border border-taleon-border bg-taleon-bg px-2 py-1">
-                <i data-lucide="thumbs-up" class="h-3.5 w-3.5 text-green-500"></i>
-                <span class="text-sm font-bold text-taleon-gold">+3</span>
-              </div>
-              <span class="rounded px-2 py-0.5 text-xs font-semibold text-white" style="background-color: #007bff">SAN</span>
-            </div>
-            <h3 class="mb-2 font-bold leading-snug">Daily reward — fase 2</h3>
-            <p class="mb-3 line-clamp-2 text-xs text-taleon-muted">Segunda etapa do daily ainda não liberada conforme roadmap interno.</p>
-            <footer class="flex items-center justify-between border-t border-taleon-border pt-2 text-xs text-taleon-muted">
-              <span class="inline-flex items-center gap-1"><i data-lucide="user" class="h-3 w-3"></i> Taleon Team</span>
-              <time datetime="2026-04-01">01/04/2026</time>
-            </footer>
-          </article>
-
-        </div>
-      </section>
-
+    <div id="loading" class="hidden absolute inset-0 z-10 flex items-center justify-center bg-taleon-bg/70">
+      <p class="text-sm text-taleon-muted">Carregando sugestões…</p>
     </div>
 
-    <!-- Placeholder dashboards (Fase 5) -->
+    <div id="board" class="board-scroll flex gap-4 overflow-x-auto pb-4" aria-live="polite"></div>
+
     <section class="mt-10 rounded-xl border border-dashed border-taleon-border bg-taleon-card/50 p-6 text-center" aria-hidden="true">
       <p class="text-sm text-taleon-muted">
         <i data-lucide="bar-chart-2" class="inline h-4 w-4 mr-1 text-taleon-gold"></i>
         Dashboards Chart.js — Fase 5
       </p>
     </section>
-
   </main>
 
-  <footer class="mt-8 border-t border-taleon-border py-6 text-center text-xs text-taleon-muted">
-    Feedback Portal Taleon · Dados mockados (Fase 1)
+  <footer class="mt-8 border-t border-taleon-border py-6 text-center text-xs text-taleon-muted" data-app-footer>
+    Feedback Portal Taleon
   </footer>
 
+  <!-- Modal: nova sugestão -->
+  <div id="modal-suggestion" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="modal-suggestion-title">
+    <div class="w-full max-w-lg rounded-xl border border-taleon-border bg-taleon-card shadow-2xl">
+      <div class="flex items-center justify-between border-b border-taleon-border px-5 py-4">
+        <h2 id="modal-suggestion-title" class="text-lg font-bold">Nova sugestão</h2>
+        <button type="button" data-close-modal class="rounded p-1 text-taleon-muted hover:bg-taleon-border hover:text-taleon-text" aria-label="Fechar">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+      <form id="form-suggestion" class="space-y-4 px-5 py-4">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="char_name" class="mb-1 block text-xs font-medium text-taleon-muted">Nome do Char</label>
+            <input required name="char_name" id="char_name" maxlength="64" class="w-full rounded-lg border border-taleon-border bg-taleon-bg px-3 py-2 text-sm outline-none focus:border-taleon-gold" placeholder="Sir Galahad" />
+          </div>
+          <div>
+            <label for="world" class="mb-1 block text-xs font-medium text-taleon-muted">Mundo</label>
+            <select required name="world" id="world" class="w-full rounded-lg border border-taleon-border bg-taleon-bg px-3 py-2 text-sm outline-none focus:border-taleon-gold">
+              <option value="SAN">SAN</option>
+              <option value="AURA">AURA</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="suggestion-category" class="mb-1 block text-xs font-medium text-taleon-muted">Categoria</label>
+          <select required name="category" id="suggestion-category" class="w-full rounded-lg border border-taleon-border bg-taleon-bg px-3 py-2 text-sm outline-none focus:border-taleon-gold"></select>
+        </div>
+        <div>
+          <label for="title" class="mb-1 block text-xs font-medium text-taleon-muted">Título</label>
+          <input required name="title" id="title" minlength="5" maxlength="200" class="w-full rounded-lg border border-taleon-border bg-taleon-bg px-3 py-2 text-sm outline-none focus:border-taleon-gold" placeholder="Resumo da melhoria" />
+        </div>
+        <div>
+          <label for="description" class="mb-1 block text-xs font-medium text-taleon-muted">Descrição</label>
+          <textarea required name="description" id="description" rows="4" minlength="10" maxlength="4000" class="w-full rounded-lg border border-taleon-border bg-taleon-bg px-3 py-2 text-sm outline-none focus:border-taleon-gold" placeholder="Descreva a sugestão com detalhes…"></textarea>
+        </div>
+        <p class="text-xs text-taleon-muted">A sugestão ficará com status <strong>pendente</strong> até aprovação da equipe.</p>
+        <div class="flex justify-end gap-2 border-t border-taleon-border pt-4">
+          <button type="button" data-close-modal class="rounded-lg border border-taleon-border px-4 py-2 text-sm text-taleon-muted hover:bg-taleon-bg">Cancelar</button>
+          <button type="submit" class="rounded-lg border border-taleon-gold/40 bg-taleon-gold/10 px-4 py-2 text-sm font-semibold text-taleon-gold hover:bg-taleon-gold/20">Enviar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-6 left-1/2 z-50 max-w-md -translate-x-1/2 rounded-lg border border-taleon-gold/40 bg-taleon-card px-4 py-3 text-sm shadow-lg opacity-0 transition-opacity duration-300">
+    <span id="toast-message"></span>
+  </div>
+
+  <script src="src/js/config.js" onerror="void 0"></script>
+  <script type="module" src="src/js/app.js"></script>
   <script>
     lucide.createIcons();
   </script>
