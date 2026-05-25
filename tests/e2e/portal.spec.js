@@ -1,19 +1,32 @@
 // tests/e2e/portal.spec.js — plan.md §9
 import { test, expect } from '@playwright/test';
 
+async function waitForPortalReady(page) {
+  await page.waitForFunction(() => typeof window.showToast === 'function', {
+    timeout: 30_000,
+  });
+  await expect(page.locator('#loading')).toHaveClass(/hidden/, { timeout: 30_000 });
+  await page.waitForSelector('#board section', { timeout: 30_000 });
+}
+
+async function openNewSuggestionModal(page) {
+  await page.locator('#btn-new-suggestion').click();
+  await expect(page.locator('#modal-suggestion')).toBeVisible({ timeout: 10_000 });
+}
+
 test.describe('Feedback Portal Taleon', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'networkidle' });
     const banner = page.locator('#config-banner');
     if (await banner.isVisible()) {
       test.skip(true, 'Supabase não configurado (runtime-config.js ausente no servidor)');
     }
+    await waitForPortalReady(page);
   });
 
   test('envio de sugestão cria card pendente na coluna', async ({ page }) => {
     const unique = `E2E Test ${Date.now()}`;
-    await page.locator('#btn-new-suggestion').click();
-    await expect(page.locator('#modal-suggestion')).toBeVisible();
+    await openNewSuggestionModal(page);
     await page.locator('#char_name').fill('E2E Tester');
     await page.locator('#title').fill(unique);
     await page.locator('#description').fill('Descrição automatizada com mais de dez caracteres.');
@@ -53,8 +66,7 @@ test.describe('Feedback Portal Taleon', () => {
     const existingTitle = (await seed.textContent())?.trim() ?? '';
     if (existingTitle.length < 5) test.skip(true, 'Título base curto demais');
 
-    await page.locator('#btn-new-suggestion').click();
-    await expect(page.locator('#modal-suggestion')).toBeVisible();
+    await openNewSuggestionModal(page);
     await page.locator('#char_name').fill('E2E Similar');
     await page.locator('#title').fill(existingTitle);
     await page
@@ -73,9 +85,13 @@ test.describe('Feedback Portal Taleon', () => {
     }
 
     await page.goto('/admin.html');
+    await page.waitForFunction(() => typeof window.showToast === 'function', {
+      timeout: 30_000,
+    });
+
     await page.locator('#admin-password').fill('senha-errada-e2e');
     await page.getByRole('button', { name: /entrar/i }).click();
-    await expect(page.getByText(/incorreta|inválida|erro/i)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/Senha incorreta/i)).toBeVisible({ timeout: 10_000 });
 
     await page.locator('#admin-password').fill(adminPass);
     await page.getByRole('button', { name: /entrar/i }).click();
@@ -85,6 +101,8 @@ test.describe('Feedback Portal Taleon', () => {
     if ((await approveBtn.count()) === 0) {
       test.skip(true, 'Nenhuma sugestão pendente na fila admin');
     }
+
+    page.once('dialog', (dialog) => dialog.accept());
     await approveBtn.click();
     await expect(page.getByText(/Sugestão aprovada/i)).toBeVisible({ timeout: 10_000 });
   });
