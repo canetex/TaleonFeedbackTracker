@@ -22,9 +22,9 @@ const doughnutLayout = {
   aspectRatio: 1.35,
 };
 
-const engagementBarLayout = {
+const engagementRadarLayout = {
   ...chartResponsive,
-  aspectRatio: 1.35,
+  aspectRatio: 1.25,
 };
 
 const LEADERBOARD_TOP_N = 10;
@@ -317,90 +317,96 @@ export async function renderDashboards() {
   }
 
   const engagementLabels = CATEGORIES.map((c) => c.split(' ').slice(0, 3).join(' '));
+  const suggestionCounts = CATEGORIES.map((c) => countByCategory[c]);
   const saldoValues = CATEGORIES.map((c) => saldoByCategory[c]);
+  const stackedTotals = suggestionCounts.map((count, i) => count + saldoValues[i]);
   const engagementCtx = document.getElementById('chart-engagement-category');
   if (engagementCtx) {
+    const rMax = Math.max(...suggestionCounts, ...stackedTotals, 1);
+    const rMin = Math.min(0, ...stackedTotals);
+
     window.__taleonCharts.engagement = new Chart(engagementCtx, {
-      type: 'bar',
+      type: 'radar',
       data: {
         labels: engagementLabels,
         datasets: [
           {
             label: 'Sugestões aprovadas',
-            data: CATEGORIES.map((c) => countByCategory[c]),
-            backgroundColor: 'rgba(193, 160, 86, 0.88)',
+            data: suggestionCounts,
             borderColor: SITE_PALETTE.gold,
-            borderWidth: 1,
-            yAxisID: 'y',
-            order: 2,
+            backgroundColor: 'rgba(193, 160, 86, 0.38)',
+            pointBackgroundColor: SITE_PALETTE.gold,
+            pointBorderColor: SITE_PALETTE.border,
+            pointHoverBackgroundColor: CHART_GOLD_GRADIENT[0],
+            pointHoverBorderColor: SITE_PALETTE.border,
+            borderWidth: 2,
+            fill: 'origin',
           },
           {
             label: 'Saldo de votos',
-            data: saldoValues,
-            backgroundColor: saldoValues.map((v) =>
-              v < 0 ? 'rgba(125, 133, 144, 0.55)' : 'rgba(240, 212, 138, 0.42)'
-            ),
-            borderColor: saldoValues.map((v) =>
-              v < 0 ? SITE_PALETTE.muted : CHART_GOLD_GRADIENT[0]
-            ),
-            borderWidth: 1,
-            yAxisID: 'y1',
-            order: 1,
+            data: stackedTotals,
+            borderColor: CHART_GOLD_GRADIENT[0],
+            backgroundColor: 'rgba(240, 212, 138, 0.28)',
+            pointBackgroundColor: CHART_GOLD_GRADIENT[0],
+            pointBorderColor: SITE_PALETTE.border,
+            pointHoverBackgroundColor: CHART_GOLD_GRADIENT[0],
+            pointHoverBorderColor: SITE_PALETTE.border,
+            borderWidth: 2,
+            fill: '-1',
           },
         ],
       },
       options: {
-        ...engagementBarLayout,
-        datasets: {
-          bar: {
-            grouped: false,
-            categoryPercentage: 0.72,
-            barPercentage: 0.9,
-          },
-        },
+        ...engagementRadarLayout,
         plugins: {
+          filler: { propagate: false },
           legend: {
             position: 'bottom',
             labels: { color: SITE_PALETTE.text, font: { size: 9 }, boxWidth: 10 },
           },
           tooltip: {
             callbacks: {
-              afterBody: (items) => {
-                if (items.length < 2) return [];
-                const cat = CATEGORIES[items[0].dataIndex];
-                if (!cat) return [];
-                return [`Categoria: ${cat}`];
+              title: (items) => {
+                const idx = items[0]?.dataIndex ?? 0;
+                return CATEGORIES[idx] ?? engagementLabels[idx] ?? '';
+              },
+              label(ctx) {
+                const idx = ctx.dataIndex ?? 0;
+                if (ctx.datasetIndex === 0) {
+                  return `Sugestões: ${suggestionCounts[idx]}`;
+                }
+                const saldo = saldoValues[idx];
+                return `Saldo: ${saldo > 0 ? '+' : ''}${saldo}`;
+              },
+              afterLabel(ctx) {
+                if (ctx.datasetIndex !== 1) return '';
+                const idx = ctx.dataIndex ?? 0;
+                return `Total empilhado: ${stackedTotals[idx]}`;
               },
             },
           },
         },
+        elements: {
+          line: { tension: 0.12 },
+        },
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
         scales: {
-          x: {
-            ticks: { color: SITE_PALETTE.text, font: { size: 8 }, maxRotation: 45, minRotation: 25 },
-            grid: { display: false },
-          },
-          y: {
+          r: {
             beginAtZero: true,
-            position: 'left',
-            title: {
-              display: true,
-              text: 'Sugestões',
+            suggestedMin: rMin < 0 ? rMin * 1.1 : 0,
+            suggestedMax: rMax * 1.12,
+            ticks: {
+              stepSize: 1,
               color: SITE_PALETTE.muted,
-              font: { size: 9 },
+              backdropColor: 'transparent',
+              font: { size: 8 },
             },
-            ticks: { color: SITE_PALETTE.muted, font: { size: 8 }, stepSize: 1 },
             grid: { color: SITE_PALETTE.border },
-          },
-          y1: {
-            position: 'right',
-            title: {
-              display: true,
-              text: 'Saldo',
-              color: SITE_PALETTE.gold,
-              font: { size: 9 },
-            },
-            ticks: { color: SITE_PALETTE.gold, font: { size: 8 } },
-            grid: { drawOnChartArea: false },
+            angleLines: { color: SITE_PALETTE.border },
+            pointLabels: { color: SITE_PALETTE.text, font: { size: 8 } },
           },
         },
       },
