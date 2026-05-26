@@ -4,6 +4,27 @@ export function formatDate(iso) {
   return d.toLocaleDateString('pt-BR');
 }
 
+export function formatRelativeTime(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+
+  const diffMs = Date.now() - d.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'agora';
+  if (diffMin < 60) return `${diffMin} min`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `${diffH} h`;
+  const diffD = Math.floor(diffH / 24);
+  if (diffD < 7) return `${diffD} d`;
+  return formatDate(iso);
+}
+
+export function truncateText(text, maxLen = 80) {
+  const t = (text || '').trim();
+  if (t.length <= maxLen) return t;
+  return `${t.slice(0, maxLen - 1)}…`;
+}
+
 export function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text ?? '';

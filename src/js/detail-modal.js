@@ -8,6 +8,8 @@ import {
 } from './storage-upload.js';
 import { escapeHtml, formatDate, worldBadge, renderImageGallery } from './utils.js';
 import { WORLD_COLORS } from './constants.js';
+import { markCardViewed } from './comment-views.js';
+import { renderBoard } from './board.js';
 
 let currentSuggestion = null;
 
@@ -63,6 +65,17 @@ function syncBoardSuggestionVoteStats(suggestionId, stats) {
   window.__boardSuggestions[idx] = {
     ...window.__boardSuggestions[idx],
     ...stats,
+  };
+}
+
+function syncBoardCommentViewStats(suggestionId, comments) {
+  if (!window.__boardSuggestions?.length) return;
+  const idx = window.__boardSuggestions.findIndex((s) => s.id === suggestionId);
+  if (idx === -1) return;
+  window.__boardSuggestions[idx] = {
+    ...window.__boardSuggestions[idx],
+    comments_seen: comments?.length ?? 0,
+    comments_new: 0,
   };
 }
 
@@ -141,6 +154,8 @@ export async function openDetailModal(suggestion) {
     try {
       const comments = await fetchComments(suggestion.id);
       renderCommentsList(comments);
+      markCardViewed(suggestion.id);
+      syncBoardCommentViewStats(suggestion.id, comments);
     } catch (err) {
       if (list) list.innerHTML = `<p class="text-sm text-red-400 py-2">${escapeHtml(err.message)}</p>`;
     }
@@ -158,10 +173,14 @@ export function bindDetailModal() {
 
   closeBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
+      const viewedId = currentSuggestion?.id;
       modal?.classList.add('hidden');
       document.body.classList.remove('overflow-hidden');
       clearPendingCommentImages();
       currentSuggestion = null;
+      if (viewedId && window.__boardSuggestions?.length) {
+        renderBoard(window.__boardSuggestions);
+      }
     });
   });
 
@@ -181,6 +200,8 @@ export function bindDetailModal() {
       clearPendingCommentImages();
       const comments = await fetchComments(currentSuggestion.id);
       renderCommentsList(comments);
+      markCardViewed(currentSuggestion.id);
+      syncBoardCommentViewStats(currentSuggestion.id, comments);
       window.showToast?.('Comentário publicado!');
       if (typeof window.onCommentAdded === 'function') {
         window.onCommentAdded(currentSuggestion.id);

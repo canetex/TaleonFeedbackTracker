@@ -27,15 +27,11 @@ export const SITE_PALETTE = {
   aura: '#6f42c1',
 };
 
-/** Cores dos gráficos por categoria */
-export const CATEGORY_CHART_COLORS = [
-  SITE_PALETTE.gold,
-  SITE_PALETTE.san,
-  SITE_PALETTE.aura,
-  SITE_PALETTE.muted,
-  '#8a7340',
-  '#c45c8a',
-];
+/** Degradê dourado alinhado ao leaderboard (Feature 4) */
+export const CHART_GOLD_GRADIENT = ['#f0d48a', '#c1a056', '#9a7d3e', '#8a7340', '#7d8590', '#484e55'];
+
+/** Cores dos gráficos por categoria — mesma paleta do leaderboard */
+export const CATEGORY_CHART_COLORS = CHART_GOLD_GRADIENT;
 
 export const STORAGE_BUCKET = 'portal-images';
 export const IMAGE_MAX_FILE_BYTES = 10 * 1024 * 1024;
@@ -48,5 +44,7 @@ export const IMAGE_ALLOWED_TYPES = [
 ];
 
 export const STORAGE_VOTES_KEY = 'taleon_voted_suggestions';
+
+export const STORAGE_CARD_LAST_VIEWED_KEY = 'taleon_card_last_viewed';
 
 export const IP_CACHE_KEY = 'taleon_client_ip';

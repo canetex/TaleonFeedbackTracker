@@ -61,6 +61,14 @@
     .dashboard-chart-wrap--tall canvas {
       max-height: 28vh;
     }
+    @media (min-width: 1280px) {
+      #recent-comments-sidebar {
+        position: sticky;
+        top: 5.5rem;
+        max-height: calc(100vh - 6rem);
+        overflow-y: auto;
+      }
+    }
   </style>
 </head>
 <body class="min-h-full bg-taleon-bg font-sans text-taleon-text antialiased">
@@ -132,7 +140,22 @@
       <p class="text-sm text-taleon-muted">Carregando sugestões…</p>
     </div>
 
-    <div id="board" class="board-scroll flex gap-4 overflow-x-auto pb-4" aria-live="polite"></div>
+    <div id="portal-layout" class="grid grid-cols-1 gap-4 xl:grid-cols-4">
+      <div id="board-scroll-wrap" class="board-scroll min-w-0 overflow-x-auto pb-4 xl:col-span-3">
+        <div id="board" class="flex gap-4" aria-live="polite"></div>
+      </div>
+      <aside
+        id="recent-comments-sidebar"
+        class="rounded-xl border border-taleon-border bg-taleon-card p-4 xl:col-span-1"
+        aria-label="Últimos comentários da comunidade"
+      >
+        <h2 class="mb-3 flex items-center gap-2 text-sm font-bold">
+          <i data-lucide="message-circle" class="h-4 w-4 text-taleon-gold"></i>
+          Últimos Comentários
+        </h2>
+        <div id="recent-comments-list" class="space-y-2"></div>
+      </aside>
+    </div>
 
     <section id="dashboards-section" class="mt-8 rounded-xl border border-taleon-border bg-taleon-card p-4 sm:p-5">
       <h2 class="mb-4 flex items-center gap-2 text-base font-bold sm:text-lg">
@@ -283,17 +306,17 @@
 
   <!-- Modal: detalhes e comentários -->
   <div id="modal-detail" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="detail-title">
-    <div class="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-xl border border-taleon-border bg-taleon-card shadow-2xl">
+    <div class="flex h-[85vh] max-h-[85vh] w-full max-w-3xl flex-col rounded-xl border border-taleon-border bg-taleon-card shadow-2xl sm:max-w-[55rem]">
       <div class="flex shrink-0 items-start justify-between gap-3 border-b border-taleon-border px-5 py-4">
         <div class="min-w-0 flex-1">
-          <h2 id="detail-title" class="text-lg font-bold leading-snug"></h2>
+          <h2 id="detail-title" class="text-lg font-bold leading-snug sm:text-xl"></h2>
           <div id="detail-meta" class="mt-2 flex flex-wrap items-center gap-2"></div>
         </div>
         <button type="button" data-close-detail class="shrink-0 rounded p-1 text-taleon-muted hover:bg-taleon-border" aria-label="Fechar">
           <i data-lucide="x" class="h-5 w-5"></i>
         </button>
       </div>
-      <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+      <div class="shrink-0 space-y-4 overflow-y-auto border-b border-taleon-border px-5 py-4 max-h-[32vh]">
         <p id="detail-description" class="text-sm leading-relaxed text-taleon-text whitespace-pre-wrap"></p>
         <div id="detail-images" class="hidden"></div>
         <div
@@ -316,16 +339,17 @@
             </span>
           </div>
         </div>
-        <section>
-          <h3 class="mb-3 flex items-center gap-2 text-sm font-bold">
-            <i data-lucide="message-square" class="h-4 w-4 text-taleon-gold"></i>
-            Comentários
-          </h3>
-          <p id="detail-comments-pending-notice" class="hidden mb-3 rounded-lg border border-amber-600/40 bg-amber-900/20 px-3 py-2 text-xs text-amber-200">
-            Esta sugestão aguarda aprovação. Comentários serão liberados após a moderação.
-          </p>
-          <div id="detail-comments-list" class="mb-4 max-h-48 space-y-2 overflow-y-auto"></div>
-          <form id="form-comment" class="space-y-3 rounded-lg border border-taleon-border bg-taleon-bg p-3">
+      </div>
+      <section class="flex min-h-0 flex-1 flex-col px-5 py-4">
+        <h3 class="mb-3 flex shrink-0 items-center gap-2 text-sm font-bold">
+          <i data-lucide="message-square" class="h-4 w-4 text-taleon-gold"></i>
+          Comentários
+        </h3>
+        <p id="detail-comments-pending-notice" class="hidden mb-3 shrink-0 rounded-lg border border-amber-600/40 bg-amber-900/20 px-3 py-2 text-xs text-amber-200">
+          Esta sugestão aguarda aprovação. Comentários serão liberados após a moderação.
+        </p>
+        <div id="detail-comments-list" class="mb-4 min-h-0 flex-1 space-y-2 overflow-y-auto"></div>
+        <form id="form-comment" class="shrink-0 space-y-3 rounded-lg border border-taleon-border bg-taleon-bg p-3">
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
                 <label for="comment-char" class="mb-1 block text-xs text-taleon-muted">Char</label>
@@ -353,8 +377,7 @@
             </div>
             <button type="submit" class="w-full rounded-lg border border-taleon-gold/40 bg-taleon-gold/10 py-2 text-sm font-semibold text-taleon-gold hover:bg-taleon-gold/20">Comentar</button>
           </form>
-        </section>
-      </div>
+      </section>
     </div>
   </div>
 

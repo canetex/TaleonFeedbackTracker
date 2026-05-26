@@ -11,6 +11,7 @@ import {
   getPendingSuggestionImageUrls,
   clearPendingSuggestionImages,
 } from './storage-upload.js';
+import { splitCommentsByViewed } from './comment-views.js';
 
 export async function fetchBoardSuggestions() {
   const supabase = getSupabase();
@@ -30,11 +31,12 @@ export async function fetchBoardSuggestions() {
   let upCountById = {};
   let downCountById = {};
   let commentCountById = {};
+  let commentsBySuggestionId = {};
 
   if (approvedIds.length > 0) {
     const [{ data: votes }, { data: comments }] = await Promise.all([
       supabase.from('votes').select('suggestion_id, vote_type').in('suggestion_id', approvedIds),
-      supabase.from('comments').select('suggestion_id').in('suggestion_id', approvedIds),
+      supabase.from('comments').select('suggestion_id, created_at').in('suggestion_id', approvedIds),
     ]);
 
     for (const id of approvedIds) {
@@ -53,16 +55,29 @@ export async function fetchBoardSuggestions() {
     }
     for (const c of comments ?? []) {
       commentCountById[c.suggestion_id] = (commentCountById[c.suggestion_id] || 0) + 1;
+      if (!commentsBySuggestionId[c.suggestion_id]) {
+        commentsBySuggestionId[c.suggestion_id] = [];
+      }
+      commentsBySuggestionId[c.suggestion_id].push(c);
     }
   }
 
-  return suggestions.map((s) => ({
-    ...s,
-    vote_up_count: s.status === 'approved' ? (upCountById[s.id] ?? 0) : 0,
-    vote_down_count: s.status === 'approved' ? (downCountById[s.id] ?? 0) : 0,
-    vote_score: s.status === 'approved' ? (scoreById[s.id] ?? 0) : 0,
-    comment_count: s.status === 'approved' ? (commentCountById[s.id] ?? 0) : 0,
-  }));
+  return suggestions.map((s) => {
+    const viewStats =
+      s.status === 'approved'
+        ? splitCommentsByViewed(commentsBySuggestionId[s.id] ?? [], s.id)
+        : { seen: 0, new: 0 };
+
+    return {
+      ...s,
+      vote_up_count: s.status === 'approved' ? (upCountById[s.id] ?? 0) : 0,
+      vote_down_count: s.status === 'approved' ? (downCountById[s.id] ?? 0) : 0,
+      vote_score: s.status === 'approved' ? (scoreById[s.id] ?? 0) : 0,
+      comment_count: s.status === 'approved' ? (commentCountById[s.id] ?? 0) : 0,
+      comments_seen: viewStats.seen,
+      comments_new: viewStats.new,
+    };
+  });
 }
 
 /** Contagem ao vivo de votos de uma sugestão (usado no modal de detalhes). */

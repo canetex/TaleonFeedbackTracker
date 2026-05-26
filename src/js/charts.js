@@ -2,6 +2,7 @@
 import {
   CATEGORIES,
   CATEGORY_CHART_COLORS,
+  CHART_GOLD_GRADIENT,
   SITE_PALETTE,
   WORLD_COLORS,
 } from './constants.js';
@@ -34,7 +35,7 @@ const radarLayout = {
 
 const LEADERBOARD_TOP_N = 10;
 
-const LEADERBOARD_TOP_GOLD = ['#f0d48a', '#c1a056', '#9a7d3e'];
+const LEADERBOARD_TOP_GOLD = CHART_GOLD_GRADIENT.slice(0, 3);
 
 function destroyCharts() {
   for (const key of ['doughnut', 'worlds', 'radar', 'leaderboard']) {
@@ -125,8 +126,8 @@ export async function renderDashboards() {
         datasets: [
           {
             data: CATEGORIES.map((c) => byCategory[c]),
-            backgroundColor: CATEGORY_CHART_COLORS,
-            borderColor: SITE_PALETTE.border,
+            backgroundColor: CATEGORY_CHART_COLORS.map((c) => c),
+            borderColor: CHART_GOLD_GRADIENT.map((c) => c),
             borderWidth: 1,
           },
         ],
@@ -148,7 +149,7 @@ export async function renderDashboards() {
           {
             data: [byWorld.SAN, byWorld.AURA],
             backgroundColor: [WORLD_COLORS.SAN, WORLD_COLORS.AURA],
-            borderColor: SITE_PALETTE.border,
+            borderColor: [SITE_PALETTE.san, SITE_PALETTE.aura],
             borderWidth: 1,
           },
         ],
@@ -171,8 +172,8 @@ export async function renderDashboards() {
             label: 'Engajamento (votos + comentários)',
             data: CATEGORIES.map((c) => engagementByCategory[c]),
             borderColor: SITE_PALETTE.gold,
-            backgroundColor: 'rgba(193, 160, 86, 0.25)',
-            pointBackgroundColor: SITE_PALETTE.gold,
+            backgroundColor: 'rgba(193, 160, 86, 0.22)',
+            pointBackgroundColor: CHART_GOLD_GRADIENT,
             pointBorderColor: SITE_PALETTE.border,
           },
         ],

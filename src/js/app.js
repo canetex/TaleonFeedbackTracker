@@ -7,6 +7,7 @@ import { bindSimilarityFlow } from './similarity.js';
 import { bindSuggestionImageUpload } from './storage-upload.js';
 import { renderDashboards } from './charts.js';
 import { fetchVoteQuota, renderVoteQuotaHeader } from './votes.js';
+import { renderRecentCommentsSidebar } from './recent-comments.js';
 
 function showToast(message) {
   const toast = document.getElementById('toast');
@@ -45,6 +46,7 @@ async function loadBoard() {
     renderVoteQuotaHeader();
     const suggestions = await fetchBoardSuggestions();
     renderBoard(suggestions);
+    renderRecentCommentsSidebar().catch((sidebarErr) => console.warn('sidebar:', sidebarErr));
     const footer = document.querySelector('[data-app-footer]');
     if (footer) footer.textContent = 'Feedback Portal Taleon · Dados ao vivo (Supabase)';
     renderDashboards().catch((chartErr) => console.error(chartErr));

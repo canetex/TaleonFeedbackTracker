@@ -6,6 +6,7 @@ import {
   validateVoteBeforeCast,
 } from './votes.js';
 import { escapeHtml, formatDate, worldBadge, normalizeImageUrls, renderImageThumb } from './utils.js';
+import { buildCommentCountersHtml } from './comment-views.js';
 
 const PENDING_LABEL = 'PENDENTE APROVACAO';
 
@@ -52,9 +53,12 @@ function buildCard(suggestion) {
   const desc = suggestion.description
     ? `<p class="mb-3 line-clamp-2 text-xs text-taleon-muted">${escapeHtml(suggestion.description)}</p>`
     : '';
-  const commentIcon =
+  const commentCounters =
     !pending && (suggestion.comment_count ?? 0) > 0
-      ? '<i data-lucide="message-square" class="ml-1 h-3 w-3 text-taleon-gold"></i>'
+      ? buildCommentCountersHtml({
+          seen: suggestion.comments_seen ?? 0,
+          new: suggestion.comments_new ?? 0,
+        })
       : '';
 
   const isPendingCategory = suggestion.category === 'Pendencias de implementação';
@@ -72,12 +76,15 @@ function buildCard(suggestion) {
       <h3 class="mb-2 font-bold leading-snug ${pending ? 'text-taleon-muted' : ''}">${escapeHtml(suggestion.title)}</h3>
       ${thumb}
       ${desc}
-      <footer class="flex items-center justify-between border-t border-taleon-border pt-2 text-xs text-taleon-muted">
-        <span class="inline-flex items-center gap-1">
-          <i data-lucide="user" class="h-3 w-3"></i> ${escapeHtml(suggestion.char_name)}
-          ${commentIcon}
+      <footer class="flex items-center justify-between gap-2 border-t border-taleon-border pt-2 text-xs text-taleon-muted">
+        <span class="inline-flex min-w-0 items-center gap-1 truncate">
+          <i data-lucide="user" class="h-3 w-3 shrink-0"></i>
+          <span class="truncate">${escapeHtml(suggestion.char_name)}</span>
         </span>
-        <time datetime="${suggestion.created_at}">${formatDate(suggestion.created_at)}</time>
+        <span class="flex shrink-0 items-center gap-2">
+          ${commentCounters}
+          <time datetime="${suggestion.created_at}">${formatDate(suggestion.created_at)}</time>
+        </span>
       </footer>
     </article>
   `;
