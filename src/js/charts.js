@@ -32,7 +32,7 @@ const LEADERBOARD_TOP_N = 10;
 const LEADERBOARD_TOP_GOLD = CHART_GOLD_GRADIENT.slice(0, 3);
 
 function destroyCharts() {
-  for (const key of ['categoryWorldPie', 'radar', 'leaderboard']) {
+  for (const key of ['categoryWorldPie', 'radar', 'leaderboardVotes', 'leaderboardComments']) {
     const inst = window.__taleonCharts?.[key];
     if (inst) inst.destroy();
   }
@@ -143,6 +143,69 @@ function leaderboardBarColor(rank, total) {
   const t = (rank - 3) / Math.max(steps - 1, 1);
   const [r, g, b] = mixRgb([154, 125, 62], [48, 54, 61], t);
   return `rgba(${r}, ${g}, ${b}, ${0.92 - t * 0.25})`;
+}
+
+/**
+ * Leaderboard horizontal (votos ou comentários).
+ * @returns {object[]|null} itens renderizados
+ */
+function renderHorizontalLeaderboard(chartKey, canvasId, items, { datasetLabel, getValue, tooltipLines }) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx || !items.length) return null;
+
+  const values = items.map(getValue);
+  const n = items.length;
+  const barColors = items.map((_, rank) => leaderboardBarColor(rank, n));
+  const barBorders = items.map((_, rank) =>
+    rank < 3 ? LEADERBOARD_TOP_GOLD[rank] : SITE_PALETTE.border
+  );
+  const barBorderWidths = items.map((_, rank) => (rank < 3 ? 2 : 1));
+
+  window.__taleonCharts[chartKey] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: items.map((s) => truncateLabel(s.title)),
+      datasets: [
+        {
+          label: datasetLabel,
+          data: values,
+          backgroundColor: barColors,
+          borderColor: barBorders,
+          borderWidth: barBorderWidths,
+        },
+      ],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      ...leaderboardClickOptions(items),
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (tooltipItems) => {
+              const idx = tooltipItems[0]?.dataIndex ?? 0;
+              return items[idx]?.title ?? '';
+            },
+            label: (ctx) => tooltipLines(ctx, items),
+          },
+        },
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { color: SITE_PALETTE.muted, font: { size: 9 } },
+          grid: { color: SITE_PALETTE.border },
+        },
+        y: {
+          ticks: { color: SITE_PALETTE.text, font: { size: 9 } },
+          grid: { display: false },
+        },
+      },
+    },
+  });
+  return items;
 }
 
 function renderCommunityStats({ feedbackTotal, votesUp, votesDown }) {
@@ -274,76 +337,69 @@ export async function renderDashboards() {
   }
 
   const approved = suggestions.filter((s) => s.status === 'approved');
-  const leaderboard = [...approved]
+  const voteLeaderboard = [...approved]
     .sort((a, b) => (b.vote_score ?? 0) - (a.vote_score ?? 0))
     .slice(0, LEADERBOARD_TOP_N);
 
-  const leaderboardCtx = document.getElementById('chart-vote-leaderboard');
-  if (leaderboardCtx && leaderboard.length > 0) {
-    const scores = leaderboard.map((s) => s.vote_score ?? 0);
-    const n = leaderboard.length;
-    const barColors = leaderboard.map((_, rank) => leaderboardBarColor(rank, n));
-    const barBorders = leaderboard.map((_, rank) =>
-      rank < 3 ? LEADERBOARD_TOP_GOLD[rank] : SITE_PALETTE.border
-    );
-    const barBorderWidths = leaderboard.map((_, rank) => (rank < 3 ? 2 : 1));
+  const commentLeaderboard = [...approved]
+    .filter((s) => (s.comment_count ?? 0) > 0)
+    .sort((a, b) => (b.comment_count ?? 0) - (a.comment_count ?? 0))
+    .slice(0, LEADERBOARD_TOP_N);
 
-    window.__taleonCharts.leaderboard = new Chart(leaderboardCtx, {
-      type: 'bar',
-      data: {
-        labels: leaderboard.map((s) => truncateLabel(s.title)),
-        datasets: [
-          {
-            label: 'Saldo (positivos − negativos)',
-            data: scores,
-            backgroundColor: barColors,
-            borderColor: barBorders,
-            borderWidth: barBorderWidths,
-          },
-        ],
+  const votesRendered = renderHorizontalLeaderboard(
+    'leaderboardVotes',
+    'chart-vote-leaderboard',
+    voteLeaderboard,
+    {
+      datasetLabel: 'Saldo (positivos − negativos)',
+      getValue: (s) => s.vote_score ?? 0,
+      tooltipLines: (ctx, items) => {
+        const idx = ctx.dataIndex ?? 0;
+        const item = items[idx];
+        const up = item?.vote_up_count ?? 0;
+        const down = item?.vote_down_count ?? 0;
+        const saldo = ctx.parsed.x;
+        const rank = idx + 1;
+        return [
+          rank <= 3 ? `#${rank} no ranking` : null,
+          `Saldo: ${saldo > 0 ? '+' : ''}${saldo}`,
+          `Positivos: ${up} · Negativos: ${down}`,
+        ].filter(Boolean);
       },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        ...leaderboardClickOptions(leaderboard),
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              title: (items) => {
-                const idx = items[0]?.dataIndex ?? 0;
-                return leaderboard[idx]?.title ?? '';
-              },
-              label: (ctx) => {
-                const idx = ctx.dataIndex ?? 0;
-                const item = leaderboard[idx];
-                const up = item?.vote_up_count ?? 0;
-                const down = item?.vote_down_count ?? 0;
-                const saldo = ctx.parsed.x;
-                const rank = idx + 1;
-                return [
-                  rank <= 3 ? `#${rank} no ranking` : null,
-                  `Saldo: ${saldo > 0 ? '+' : ''}${saldo}`,
-                  `Positivos: ${up} · Negativos: ${down}`,
-                ].filter(Boolean);
-              },
-            },
-          },
-        },
-        scales: {
-          x: {
-            beginAtZero: true,
-            ticks: { color: SITE_PALETTE.muted, font: { size: 9 } },
-            grid: { color: SITE_PALETTE.border },
-          },
-          y: {
-            ticks: { color: SITE_PALETTE.text, font: { size: 9 } },
-            grid: { display: false },
-          },
-        },
+    }
+  );
+
+  const commentsRendered = renderHorizontalLeaderboard(
+    'leaderboardComments',
+    'chart-comment-leaderboard',
+    commentLeaderboard,
+    {
+      datasetLabel: 'Comentários',
+      getValue: (s) => s.comment_count ?? 0,
+      tooltipLines: (ctx, items) => {
+        const idx = ctx.dataIndex ?? 0;
+        const count = ctx.parsed.x;
+        const rank = idx + 1;
+        return [
+          rank <= 3 ? `#${rank} no ranking` : null,
+          `Comentários: ${count}`,
+        ].filter(Boolean);
       },
-    });
-    window.__taleonLeaderboards = { ...(window.__taleonLeaderboards || {}), votes: leaderboard };
+    }
+  );
+
+  const commentEmptyEl = document.getElementById('comment-leaderboard-empty');
+  const commentCanvas = document.getElementById('chart-comment-leaderboard');
+  if (commentEmptyEl && commentCanvas) {
+    const showEmpty = !commentsRendered;
+    commentEmptyEl.classList.toggle('hidden', !showEmpty);
+    commentCanvas.classList.toggle('hidden', showEmpty);
+  }
+
+  if (votesRendered || commentsRendered) {
+    window.__taleonLeaderboards = {
+      ...(votesRendered ? { votes: votesRendered } : {}),
+      ...(commentsRendered ? { comments: commentsRendered } : {}),
+    };
   }
 }
