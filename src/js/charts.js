@@ -4,18 +4,12 @@ import {
   CATEGORY_CHART_COLORS,
   CHART_GOLD_GRADIENT,
   SITE_PALETTE,
-  WORLD_COLORS,
 } from './constants.js';
 import { fetchBoardSuggestions } from './suggestions.js';
 
 const chartDefaults = {
   color: SITE_PALETTE.text,
   borderColor: SITE_PALETTE.border,
-};
-
-const doughnutLegend = {
-  position: 'bottom',
-  labels: { boxWidth: 10, font: { size: 9 }, color: SITE_PALETTE.text, padding: 8 },
 };
 
 const chartResponsive = {
@@ -38,11 +32,77 @@ const LEADERBOARD_TOP_N = 10;
 const LEADERBOARD_TOP_GOLD = CHART_GOLD_GRADIENT.slice(0, 3);
 
 function destroyCharts() {
-  for (const key of ['doughnut', 'worlds', 'radar', 'leaderboard']) {
+  for (const key of ['categoryWorldPie', 'radar', 'leaderboard']) {
     const inst = window.__taleonCharts?.[key];
     if (inst) inst.destroy();
   }
   window.__taleonCharts = {};
+}
+
+function categoryChartLabel(category) {
+  return category.replace('Novas ', '').slice(0, 22);
+}
+
+/** Legenda/tooltip para doughnut com anel externo (categorias) e interno (SAN/AURA). */
+function multiSeriesPiePlugins({ categoryLabels, worldLabels }) {
+  return {
+    legend: {
+      position: 'bottom',
+      labels: {
+        boxWidth: 10,
+        font: { size: 9 },
+        color: SITE_PALETTE.text,
+        padding: 6,
+        generateLabels(chart) {
+          const labels = [];
+          const meta0 = chart.getDatasetMeta(0);
+          const meta1 = chart.getDatasetMeta(1);
+          categoryLabels.forEach((text, i) => {
+            const arc = meta0.data[i];
+            labels.push({
+              text,
+              fillStyle: arc?.options?.backgroundColor ?? CATEGORY_CHART_COLORS[i],
+              strokeStyle: SITE_PALETTE.border,
+              lineWidth: 1,
+              hidden: !chart.isDatasetVisible(0) || meta0.data[i]?.hidden,
+              index: i,
+              datasetIndex: 0,
+            });
+          });
+          worldLabels.forEach((text, i) => {
+            const arc = meta1.data[i];
+            labels.push({
+              text,
+              fillStyle: arc?.options?.backgroundColor ?? CHART_GOLD_GRADIENT[i],
+              strokeStyle: SITE_PALETTE.border,
+              lineWidth: 1,
+              hidden: !chart.isDatasetVisible(1) || meta1.data[i]?.hidden,
+              index: i,
+              datasetIndex: 1,
+            });
+          });
+          return labels;
+        },
+      },
+      onClick(_mouseEvent, legendItem, legend) {
+        const meta = legend.chart.getDatasetMeta(legendItem.datasetIndex);
+        meta.hidden = meta.hidden === null ? !legend.chart.data.datasets[legendItem.datasetIndex].hidden : null;
+        legend.chart.update();
+      },
+    },
+    tooltip: {
+      callbacks: {
+        label(ctx) {
+          const dsLabel = ctx.dataset.label || '';
+          const name =
+            ctx.datasetIndex === 0
+              ? categoryLabels[ctx.dataIndex]
+              : worldLabels[ctx.dataIndex];
+          return `${dsLabel}: ${name} — ${ctx.formattedValue}`;
+        },
+      },
+    },
+  };
 }
 
 function truncateLabel(title, maxLen = 28) {
@@ -134,46 +194,38 @@ export async function renderDashboards() {
   Chart.defaults.color = chartDefaults.color;
   Chart.defaults.borderColor = chartDefaults.borderColor;
 
-  const doughnutCtx = document.getElementById('chart-category-doughnut');
-  if (doughnutCtx) {
-    window.__taleonCharts.doughnut = new Chart(doughnutCtx, {
+  const categoryLabels = CATEGORIES.map(categoryChartLabel);
+  const worldLabels = ['SAN', 'AURA'];
+  const pieCtx = document.getElementById('chart-category-doughnut');
+  if (pieCtx) {
+    window.__taleonCharts.categoryWorldPie = new Chart(pieCtx, {
       type: 'doughnut',
       data: {
-        labels: CATEGORIES.map((c) => c.replace('Novas ', '').slice(0, 22)),
+        labels: [...categoryLabels, ...worldLabels],
         datasets: [
           {
+            label: 'Categoria',
             data: CATEGORIES.map((c) => byCategory[c]),
-            backgroundColor: CATEGORY_CHART_COLORS.map((c) => c),
-            borderColor: CHART_GOLD_GRADIENT.map((c) => c),
+            backgroundColor: CATEGORY_CHART_COLORS,
+            borderColor: CHART_GOLD_GRADIENT,
             borderWidth: 1,
+            radius: '100%',
+            cutout: '52%',
           },
-        ],
-      },
-      options: {
-        ...doughnutLayout,
-        plugins: { legend: doughnutLegend },
-      },
-    });
-  }
-
-  const worldsCtx = document.getElementById('chart-worlds-doughnut');
-  if (worldsCtx) {
-    window.__taleonCharts.worlds = new Chart(worldsCtx, {
-      type: 'doughnut',
-      data: {
-        labels: ['SAN', 'AURA'],
-        datasets: [
           {
+            label: 'Mundo',
             data: [byWorld.SAN, byWorld.AURA],
-            backgroundColor: [WORLD_COLORS.SAN, WORLD_COLORS.AURA],
-            borderColor: [SITE_PALETTE.san, SITE_PALETTE.aura],
+            backgroundColor: [CHART_GOLD_GRADIENT[0], CHART_GOLD_GRADIENT[2]],
+            borderColor: [CHART_GOLD_GRADIENT[0], CHART_GOLD_GRADIENT[2]],
             borderWidth: 1,
+            radius: '48%',
+            cutout: '0%',
           },
         ],
       },
       options: {
         ...doughnutLayout,
-        plugins: { legend: doughnutLegend },
+        plugins: multiSeriesPiePlugins({ categoryLabels, worldLabels }),
       },
     });
   }
