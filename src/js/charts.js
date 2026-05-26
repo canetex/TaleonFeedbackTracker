@@ -31,12 +31,32 @@ const LEADERBOARD_TOP_N = 10;
 
 const LEADERBOARD_TOP_GOLD = CHART_GOLD_GRADIENT.slice(0, 3);
 
+let dashboardsRendered = false;
+
+export function areDashboardsRendered() {
+  return dashboardsRendered;
+}
+
+export function invalidateDashboards() {
+  if (dashboardsRendered) destroyCharts();
+  dashboardsRendered = false;
+}
+
+export function resizeDashboardCharts() {
+  const charts = window.__taleonCharts;
+  if (!charts) return;
+  for (const inst of Object.values(charts)) {
+    inst?.resize?.();
+  }
+}
+
 function destroyCharts() {
   for (const key of ['categoryWorldPie', 'engagement', 'leaderboardVotes', 'leaderboardComments']) {
     const inst = window.__taleonCharts?.[key];
     if (inst) inst.destroy();
   }
   window.__taleonCharts = {};
+  dashboardsRendered = false;
 }
 
 function categoryChartLabel(category) {
@@ -453,4 +473,7 @@ export async function renderDashboards() {
       ...(commentsRendered ? { comments: commentsRendered } : {}),
     };
   }
+
+  dashboardsRendered = true;
+  requestAnimationFrame(() => resizeDashboardCharts());
 }

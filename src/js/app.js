@@ -5,9 +5,10 @@ import { renderBoard, setBoardRefreshCallback } from './board.js';
 import { bindDetailModal, bindCardDetailOpen } from './detail-modal.js';
 import { bindSimilarityFlow } from './similarity.js';
 import { bindSuggestionImageUpload } from './storage-upload.js';
-import { renderDashboards } from './charts.js';
+import { invalidateDashboards, renderDashboards } from './charts.js';
 import { fetchVoteQuota, renderVoteQuotaHeader } from './votes.js';
 import { renderRecentCommentsSidebar, bindRecentCommentsWidget } from './recent-comments.js';
+import { bindAppTabs, getActiveTab } from './tabs.js';
 
 function showToast(message) {
   const toast = document.getElementById('toast');
@@ -49,7 +50,10 @@ async function loadBoard() {
     renderRecentCommentsSidebar().catch((sidebarErr) => console.warn('sidebar:', sidebarErr));
     const footer = document.querySelector('[data-app-footer]');
     if (footer) footer.textContent = 'Feedback Portal Taleon · Dados ao vivo (Supabase)';
-    renderDashboards().catch((chartErr) => console.error(chartErr));
+    invalidateDashboards();
+    if (getActiveTab() === 'charts') {
+      await renderDashboards().catch((chartErr) => console.error(chartErr));
+    }
   } catch (err) {
     showToast(err.message || 'Falha ao carregar sugestões.');
     console.error(err);
@@ -59,6 +63,7 @@ async function loadBoard() {
 }
 
 async function init() {
+  await bindAppTabs();
   bindRecentCommentsWidget();
   setBoardRefreshCallback(loadBoard);
   bindSuggestionForm(loadBoard);
