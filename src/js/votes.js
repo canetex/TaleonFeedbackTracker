@@ -27,6 +27,9 @@ const RPC_ERROR_MESSAGES = {
 /** @type {{ limit_up: number, limit_down: number, limit_per_suggestion: number, used_up: number, used_down: number, remaining_up: number, remaining_down: number } | null} */
 let current_quota = null;
 
+/** Contagens por sugestão no IP atual (Supabase). */
+let serverVoteCountsBySuggestion = {};
+
 function readVotedMap() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_VOTES_KEY) || '{}');
@@ -39,14 +42,51 @@ function writeVotedMap(map) {
   localStorage.setItem(STORAGE_VOTES_KEY, JSON.stringify(map));
 }
 
-/** @returns {{ up: number, down: number }} */
-export function getSuggestionVoteCounts(suggestionId) {
+function readLocalSuggestionVoteCounts(suggestionId) {
   const entry = readVotedMap()[suggestionId];
   if (!entry) return { up: 0, down: 0 };
   if (typeof entry === 'string') {
     return entry === 'up' ? { up: 1, down: 0 } : { up: 0, down: 1 };
   }
   return { up: Number(entry.up) || 0, down: Number(entry.down) || 0 };
+}
+
+function getServerSuggestionVoteCounts(suggestionId) {
+  return serverVoteCountsBySuggestion[suggestionId] ?? { up: 0, down: 0 };
+}
+
+/** Maior valor entre localStorage e votos do IP no servidor (evita descompasso entre dispositivos). */
+export function getSuggestionVoteCounts(suggestionId) {
+  const local = readLocalSuggestionVoteCounts(suggestionId);
+  const server = getServerSuggestionVoteCounts(suggestionId);
+  return {
+    up: Math.max(local.up, server.up),
+    down: Math.max(local.down, server.down),
+  };
+}
+
+function syncLocalStorageFromServerCounts() {
+  const map = readVotedMap();
+  let changed = false;
+
+  for (const [suggestionId, server] of Object.entries(serverVoteCountsBySuggestion)) {
+    const local = readLocalSuggestionVoteCounts(suggestionId);
+    const up = Math.max(local.up, server.up);
+    const down = Math.max(local.down, server.down);
+    if (up !== local.up || down !== local.down) {
+      map[suggestionId] = { up, down };
+      changed = true;
+    }
+  }
+
+  if (changed) writeVotedMap(map);
+}
+
+function bumpServerSuggestionVoteCount(suggestionId, voteType) {
+  if (!serverVoteCountsBySuggestion[suggestionId]) {
+    serverVoteCountsBySuggestion[suggestionId] = { up: 0, down: 0 };
+  }
+  serverVoteCountsBySuggestion[suggestionId][voteType] += 1;
 }
 
 function normalizeQuota(raw) {
@@ -121,6 +161,30 @@ export async function fetchVoteQuota() {
   return current_quota;
 }
 
+/** Carrega votos do IP na tabela votes e alinha localStorage ao maior valor. */
+export async function fetchIpVoteCountsForBoard() {
+  const supabase = getSupabase();
+  const ip_address = await getClientIp();
+  const { data, error } = await supabase
+    .from('votes')
+    .select('suggestion_id, vote_type')
+    .eq('ip_address', ip_address);
+
+  if (error) throw error;
+
+  serverVoteCountsBySuggestion = {};
+  for (const row of data ?? []) {
+    const id = row.suggestion_id;
+    if (!serverVoteCountsBySuggestion[id]) {
+      serverVoteCountsBySuggestion[id] = { up: 0, down: 0 };
+    }
+    if (row.vote_type === 'up') serverVoteCountsBySuggestion[id].up += 1;
+    else if (row.vote_type === 'down') serverVoteCountsBySuggestion[id].down += 1;
+  }
+
+  syncLocalStorageFromServerCounts();
+}
+
 export function renderVoteQuotaHeader() {
   const wrap = document.getElementById('vote-quota-wrap');
   const upEl = document.getElementById('vote-quota-up');
@@ -165,8 +229,10 @@ export async function castVote(suggestionId, voteType) {
 
   current_quota = normalizeQuota(data) ?? current_quota;
 
-  const map = readVotedMap();
+  bumpServerSuggestionVoteCount(suggestionId, voteType);
+
   const prev = getSuggestionVoteCounts(suggestionId);
+  const map = readVotedMap();
   map[suggestionId] = {
     up: prev.up + (voteType === 'up' ? 1 : 0),
     down: prev.down + (voteType === 'down' ? 1 : 0),

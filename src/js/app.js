@@ -6,7 +6,7 @@ import { bindDetailModal, bindCardDetailOpen } from './detail-modal.js';
 import { bindSimilarityFlow } from './similarity.js';
 import { bindSuggestionImageUpload } from './storage-upload.js';
 import { invalidateDashboards, renderDashboards } from './charts.js';
-import { fetchVoteQuota, renderVoteQuotaHeader } from './votes.js';
+import { fetchIpVoteCountsForBoard, fetchVoteQuota, renderVoteQuotaHeader } from './votes.js';
 import { renderRecentCommentsSidebar, bindRecentCommentsWidget } from './recent-comments.js';
 import { bindAppTabs, getActiveTab } from './tabs.js';
 
@@ -44,6 +44,9 @@ async function loadBoard() {
   setLoading(true);
   try {
     await fetchVoteQuota().catch((quotaErr) => console.warn('quota de votos:', quotaErr));
+    await fetchIpVoteCountsForBoard().catch((ipVotesErr) =>
+      console.warn('votos do IP no servidor:', ipVotesErr)
+    );
     renderVoteQuotaHeader();
     const suggestions = await fetchBoardSuggestions();
     renderBoard(suggestions);
