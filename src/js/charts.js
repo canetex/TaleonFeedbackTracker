@@ -22,9 +22,22 @@ const doughnutLayout = {
   aspectRatio: 1.35,
 };
 
-const engagementRadarLayout = {
+const engagementBarLayout = {
   ...chartResponsive,
-  aspectRatio: 1.25,
+  aspectRatio: 1.35,
+};
+
+/** Escala em dezenas para saldo e comentários no gráfico de engajamento. */
+const ENGAGEMENT_TENS_DIVISOR = 10;
+
+const chartLegend = {
+  position: 'bottom',
+  labels: {
+    color: SITE_PALETTE.text,
+    font: { size: 12 },
+    boxWidth: 12,
+    padding: 10,
+  },
 };
 
 const LEADERBOARD_TOP_N = 10;
@@ -103,7 +116,7 @@ function renderCategoryWorldHtmlLegend({ categoryLabels, categoryCounts, worldLa
       (label, i) => `
     <li class="flex items-center gap-1.5 leading-tight">
       <span class="h-2 w-2 shrink-0 rounded-sm border border-taleon-border" style="background-color:${CATEGORY_CHART_COLORS[i]}"></span>
-      <span>${label} <span class="text-taleon-muted">(${categoryCounts[i] ?? 0})</span></span>
+      <span class="text-xs">${label} <span class="text-taleon-muted">(${categoryCounts[i] ?? 0})</span></span>
     </li>`
     )
     .join('');
@@ -113,7 +126,7 @@ function renderCategoryWorldHtmlLegend({ categoryLabels, categoryCounts, worldLa
       (label, i) => `
     <li class="flex items-center gap-1.5 leading-tight">
       <span class="h-2 w-2 shrink-0 rounded-sm border border-taleon-border" style="background-color:${WORLD_PIE_COLORS[i]}"></span>
-      <span>${label} <span class="text-taleon-muted">(${worldCounts[i] ?? 0})</span></span>
+      <span class="text-xs">${label} <span class="text-taleon-muted">(${worldCounts[i] ?? 0})</span></span>
     </li>`
     )
     .join('');
@@ -245,6 +258,7 @@ export async function renderDashboards() {
   const byCategory = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
   const byWorld = { SAN: 0, AURA: 0 };
   const saldoByCategory = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
+  const commentsByCategory = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
   let votesUpTotal = 0;
   let votesDownTotal = 0;
 
@@ -256,6 +270,7 @@ export async function renderDashboards() {
       votesDownTotal += s.vote_down_count ?? 0;
       if (saldoByCategory[s.category] !== undefined) {
         saldoByCategory[s.category] += s.vote_score ?? 0;
+        commentsByCategory[s.category] += s.comment_count ?? 0;
       }
     }
   }
@@ -317,50 +332,53 @@ export async function renderDashboards() {
   const engagementLabels = CATEGORIES.map((c) => c.split(' ').slice(0, 3).join(' '));
   const feedbacksPerCategory = CATEGORIES.map((c) => byCategory[c]);
   const saldoPerCategory = CATEGORIES.map((c) => saldoByCategory[c]);
+  const commentsPerCategory = CATEGORIES.map((c) => commentsByCategory[c]);
+  const saldoInTens = saldoPerCategory.map((v) => v / ENGAGEMENT_TENS_DIVISOR);
+  const commentsInTens = commentsPerCategory.map((v) => v / ENGAGEMENT_TENS_DIVISOR);
   const engagementCtx = document.getElementById('chart-engagement-category');
   if (engagementCtx) {
-    const axisValues = [...feedbacksPerCategory, ...saldoPerCategory];
-    const rMax = Math.max(...axisValues, 1);
-    const rMin = Math.min(...axisValues, 0);
+    const tensValues = [...saldoInTens, ...commentsInTens];
+    const tensMin = Math.min(...tensValues, 0);
+    const tensMax = Math.max(...tensValues, 0.1);
 
     window.__taleonCharts.engagement = new Chart(engagementCtx, {
-      type: 'radar',
+      type: 'bar',
       data: {
         labels: engagementLabels,
         datasets: [
           {
             label: 'Feedbacks por Categoria',
             data: feedbacksPerCategory,
+            backgroundColor: 'rgba(193, 160, 86, 0.88)',
             borderColor: SITE_PALETTE.gold,
-            backgroundColor: 'rgba(193, 160, 86, 0.22)',
-            pointBackgroundColor: SITE_PALETTE.gold,
-            pointBorderColor: SITE_PALETTE.border,
-            pointHoverBackgroundColor: CHART_GOLD_GRADIENT[0],
-            pointHoverBorderColor: SITE_PALETTE.border,
-            borderWidth: 2,
-            fill: true,
+            borderWidth: 1,
+            yAxisID: 'y',
+            order: 1,
           },
           {
             label: 'Saldo de Votos da Categoria',
-            data: saldoPerCategory,
+            data: saldoInTens,
+            backgroundColor: 'rgba(240, 212, 138, 0.65)',
             borderColor: CHART_GOLD_GRADIENT[0],
-            backgroundColor: 'rgba(240, 212, 138, 0.18)',
-            pointBackgroundColor: CHART_GOLD_GRADIENT[0],
-            pointBorderColor: SITE_PALETTE.border,
-            pointHoverBackgroundColor: CHART_GOLD_GRADIENT[0],
-            pointHoverBorderColor: SITE_PALETTE.border,
-            borderWidth: 2,
-            fill: true,
+            borderWidth: 1,
+            yAxisID: 'y1',
+            order: 2,
+          },
+          {
+            label: 'Comentários',
+            data: commentsInTens,
+            backgroundColor: 'rgba(125, 133, 144, 0.55)',
+            borderColor: SITE_PALETTE.muted,
+            borderWidth: 1,
+            yAxisID: 'y1',
+            order: 3,
           },
         ],
       },
       options: {
-        ...engagementRadarLayout,
+        ...engagementBarLayout,
         plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { color: SITE_PALETTE.text, font: { size: 9 }, boxWidth: 10 },
-          },
+          legend: chartLegend,
           tooltip: {
             callbacks: {
               title: (items) => {
@@ -369,37 +387,58 @@ export async function renderDashboards() {
               },
               label(ctx) {
                 const idx = ctx.dataIndex ?? 0;
-                const value = ctx.parsed.r ?? ctx.raw;
                 if (ctx.datasetIndex === 0) {
-                  return `Feedbacks: ${value}`;
+                  return `Feedbacks: ${feedbacksPerCategory[idx]} (unidades)`;
                 }
-                const saldo = saldoPerCategory[idx];
-                return `Saldo de votos: ${saldo > 0 ? '+' : ''}${saldo}`;
+                if (ctx.datasetIndex === 1) {
+                  const saldo = saldoPerCategory[idx];
+                  return `Saldo de votos: ${saldo > 0 ? '+' : ''}${saldo}`;
+                }
+                return `Comentários: ${commentsPerCategory[idx]}`;
               },
             },
           },
-        },
-        elements: {
-          line: { tension: 0.12 },
         },
         interaction: {
           mode: 'index',
           intersect: false,
         },
         scales: {
-          r: {
-            beginAtZero: rMin >= 0,
-            suggestedMin: rMin < 0 ? Math.floor(rMin * 1.12) : 0,
-            suggestedMax: Math.ceil(rMax * 1.12),
-            ticks: {
-              stepSize: 1,
-              color: SITE_PALETTE.muted,
-              backdropColor: 'transparent',
-              font: { size: 8 },
+          x: {
+            ticks: { color: SITE_PALETTE.text, font: { size: 10 }, maxRotation: 45, minRotation: 20 },
+            grid: { display: false },
+          },
+          y: {
+            type: 'linear',
+            position: 'left',
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Unidades',
+              color: SITE_PALETTE.gold,
+              font: { size: 11, weight: '600' },
             },
+            ticks: { color: SITE_PALETTE.gold, font: { size: 10 }, stepSize: 1 },
             grid: { color: SITE_PALETTE.border },
-            angleLines: { color: SITE_PALETTE.border },
-            pointLabels: { color: SITE_PALETTE.text, font: { size: 8 } },
+          },
+          y1: {
+            type: 'linear',
+            position: 'right',
+            beginAtZero: tensMin >= 0,
+            suggestedMin: tensMin < 0 ? tensMin * 1.15 : 0,
+            suggestedMax: tensMax * 1.15,
+            title: {
+              display: true,
+              text: 'Dezenas',
+              color: SITE_PALETTE.muted,
+              font: { size: 11, weight: '600' },
+            },
+            ticks: {
+              color: SITE_PALETTE.muted,
+              font: { size: 10 },
+              callback: (value) => `${value}`,
+            },
+            grid: { drawOnChartArea: false },
           },
         },
       },
