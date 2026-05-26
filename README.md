@@ -79,10 +79,21 @@ Cadastre estes secrets (valores do [Supabase Dashboard](https://supabase.com/das
 | `NEXT_PUBLIC_SUPABASE_URL` | Project URL (`https://xxxx.supabase.co`) |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave **publishable** (`sb_publishable_...`) |
 | `NEXT_PUBLIC_SUPABASE_ANON_JWT` | JWT **anon** legado (`eyJ...`, role anon) |
+| `GOOGLE_ANALYTICS_ID` | (opcional) ID GA4 `G-XXXXXXXXXX` — ver abaixo |
 
 Alternativa: use os nomes `SUPABASE_URL`, `SUPABASE_ANON_KEY` e `SUPABASE_ANON_JWT` no `.env` local — no GitHub o workflow espera os nomes `NEXT_PUBLIC_*` acima.
 
 Não coloque no GitHub: `SUPABASE_PASSWORD`, `ADMIN_SECRET_PASSWORD`, `GEMINI_API_KEY` (estas ficam no Supabase Secrets ou só no seu PC).
+
+#### Google Analytics 4 (opcional)
+
+1. [Google Analytics](https://analytics.google.com/) → **Admin** → criar propriedade **GA4**
+2. Fluxo de dados **Web** → URL `https://canetex.github.io/TaleonFeedbackTracker/`
+3. Copie o **ID de medição** (`G-XXXXXXXXXX`)
+4. GitHub → **Settings** → **Secrets** → `GOOGLE_ANALYTICS_ID` = esse ID
+5. Rode de novo o workflow **Deploy GitHub Pages** (o ID entra no `runtime-config.js` no build)
+
+Sem o secret, o site funciona normalmente; o script de analytics não carrega. Métricas: visitas, páginas, origem, dispositivos — em **Relatórios** no GA4 (pode levar até 24–48 h para dados estáveis).
 
 ### Passo 3 — URL do site (caminho base)
 

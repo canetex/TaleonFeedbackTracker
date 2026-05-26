@@ -39,6 +39,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || secrets.SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || secrets.SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SUPABASE_ANON_JWT: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_JWT || secrets.SUPABASE_ANON_JWT }}
+          GOOGLE_ANALYTICS_ID: ${{ secrets.GOOGLE_ANALYTICS_ID }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

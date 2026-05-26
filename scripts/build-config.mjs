@@ -18,6 +18,11 @@ const jwtAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_JWT ||
   process.env.SUPABASE_ANON_JWT ||
   (key.startsWith('eyJ') ? key : '');
+const gaMeasurementId = (
+  process.env.GOOGLE_ANALYTICS_ID ||
+  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ||
+  ''
+).trim();
 
 if (!url || !key) {
   console.error(
@@ -31,6 +36,7 @@ window.TALEON_CONFIG = {
   supabaseUrl: ${JSON.stringify(url)},
   supabaseAnonKey: ${JSON.stringify(key)},
   supabaseJwtAnonKey: ${JSON.stringify(jwtAnonKey)},
+  gaMeasurementId: ${JSON.stringify(gaMeasurementId)},
 };
 window.NEXT_PUBLIC_SUPABASE_URL = ${JSON.stringify(url)};
 window.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = ${JSON.stringify(key)};
@@ -42,3 +48,8 @@ mkdirSync(jsDir, { recursive: true });
 writeFileSync(join(jsDir, 'config.js'), content, 'utf8');
 writeFileSync(join(root, 'runtime-config.js'), content, 'utf8');
 console.log('config.js e runtime-config.js gerados para deploy.');
+if (gaMeasurementId) {
+  console.log('Google Analytics 4:', gaMeasurementId);
+} else {
+  console.log('Google Analytics: desativado (defina GOOGLE_ANALYTICS_ID no build).');
+}
