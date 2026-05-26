@@ -61,24 +61,28 @@
     .dashboard-chart-wrap--tall canvas {
       max-height: 28vh;
     }
-    /* Widget lateral — Últimos Comentários */
+    /* Widget lateral — Últimos Comentários (sobreposto) */
     :root {
       --site-header-height: 4.75rem;
       --recent-widget-width: 18rem;
+      --app-main-width: 80%;
     }
-    body.recent-widget-expanded #app-main {
-      padding-right: 0;
+    #app-main {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
     @media (min-width: 768px) {
-      body.recent-widget-expanded #app-main {
-        padding-right: calc(var(--recent-widget-width) + 0.75rem);
+      #app-main {
+        width: var(--app-main-width);
+        max-width: var(--app-main-width);
       }
     }
     #recent-comments-widget {
       position: fixed;
       top: var(--site-header-height);
       right: 0;
-      z-index: 30;
+      z-index: 40;
       display: flex;
       width: var(--recent-widget-width);
       max-height: calc(100vh - var(--site-header-height));

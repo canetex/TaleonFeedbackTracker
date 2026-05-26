@@ -27,7 +27,6 @@ function applyWidgetState(minimized) {
   if (!widget || !toggleBtn) return;
 
   widget.classList.toggle('is-minimized', minimized);
-  document.body.classList.toggle('recent-widget-expanded', !minimized);
   toggleBtn.setAttribute('aria-expanded', minimized ? 'false' : 'true');
   toggleBtn.title = minimized ? 'Expandir painel de comentários' : 'Minimizar painel';
   toggleBtn.setAttribute('aria-label', toggleBtn.title);
