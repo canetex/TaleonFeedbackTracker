@@ -43,66 +43,60 @@ function categoryChartLabel(category) {
   return category.replace('Novas ', '').slice(0, 22);
 }
 
-/** Legenda/tooltip para doughnut com anel externo (categorias) e interno (SAN/AURA). */
-function multiSeriesPiePlugins({ categoryLabels, worldLabels }) {
+/** Chart.js: dataset 0 = anel externo; dataset 1 = anel interno (centro). */
+const PIE_RING = { OUTER: 0, INNER: 1 };
+
+const WORLD_PIE_COLORS = [CHART_GOLD_GRADIENT[0], CHART_GOLD_GRADIENT[2]];
+
+function categoryWorldPieTooltipPlugins({ categoryLabels, worldLabels }) {
   return {
-    legend: {
-      position: 'bottom',
-      labels: {
-        boxWidth: 10,
-        font: { size: 9 },
-        color: SITE_PALETTE.text,
-        padding: 6,
-        generateLabels(chart) {
-          const labels = [];
-          const meta0 = chart.getDatasetMeta(0);
-          const meta1 = chart.getDatasetMeta(1);
-          categoryLabels.forEach((text, i) => {
-            const arc = meta0.data[i];
-            labels.push({
-              text,
-              fillStyle: arc?.options?.backgroundColor ?? CATEGORY_CHART_COLORS[i],
-              strokeStyle: SITE_PALETTE.border,
-              lineWidth: 1,
-              hidden: !chart.isDatasetVisible(0) || meta0.data[i]?.hidden,
-              index: i,
-              datasetIndex: 0,
-            });
-          });
-          worldLabels.forEach((text, i) => {
-            const arc = meta1.data[i];
-            labels.push({
-              text,
-              fillStyle: arc?.options?.backgroundColor ?? CHART_GOLD_GRADIENT[i],
-              strokeStyle: SITE_PALETTE.border,
-              lineWidth: 1,
-              hidden: !chart.isDatasetVisible(1) || meta1.data[i]?.hidden,
-              index: i,
-              datasetIndex: 1,
-            });
-          });
-          return labels;
-        },
-      },
-      onClick(_mouseEvent, legendItem, legend) {
-        const meta = legend.chart.getDatasetMeta(legendItem.datasetIndex);
-        meta.hidden = meta.hidden === null ? !legend.chart.data.datasets[legendItem.datasetIndex].hidden : null;
-        legend.chart.update();
-      },
-    },
+    legend: { display: false },
     tooltip: {
       callbacks: {
+        title(items) {
+          const ds = items[0]?.datasetIndex;
+          if (ds === PIE_RING.OUTER) return 'Anel externo · Categoria';
+          if (ds === PIE_RING.INNER) return 'Anel interno · Servidor';
+          return '';
+        },
         label(ctx) {
-          const dsLabel = ctx.dataset.label || '';
           const name =
-            ctx.datasetIndex === 0
+            ctx.datasetIndex === PIE_RING.OUTER
               ? categoryLabels[ctx.dataIndex]
               : worldLabels[ctx.dataIndex];
-          return `${dsLabel}: ${name} — ${ctx.formattedValue}`;
+          const n = ctx.parsed;
+          return `${name}: ${n} sugestão${n === 1 ? '' : 'ões'}`;
         },
       },
     },
   };
+}
+
+/** Legenda HTML em duas colunas (evita misturar 6 + 2 fatias na legenda do Chart.js). */
+function renderCategoryWorldHtmlLegend({ categoryLabels, categoryCounts, worldLabels, worldCounts }) {
+  const catList = document.getElementById('legend-categories');
+  const worldList = document.getElementById('legend-worlds');
+  if (!catList || !worldList) return;
+
+  catList.innerHTML = categoryLabels
+    .map(
+      (label, i) => `
+    <li class="flex items-center gap-1.5 leading-tight">
+      <span class="h-2 w-2 shrink-0 rounded-sm border border-taleon-border" style="background-color:${CATEGORY_CHART_COLORS[i]}"></span>
+      <span>${label} <span class="text-taleon-muted">(${categoryCounts[i] ?? 0})</span></span>
+    </li>`
+    )
+    .join('');
+
+  worldList.innerHTML = worldLabels
+    .map(
+      (label, i) => `
+    <li class="flex items-center gap-1.5 leading-tight">
+      <span class="h-2 w-2 shrink-0 rounded-sm border border-taleon-border" style="background-color:${WORLD_PIE_COLORS[i]}"></span>
+      <span>${label} <span class="text-taleon-muted">(${worldCounts[i] ?? 0})</span></span>
+    </li>`
+    )
+    .join('');
 }
 
 function truncateLabel(title, maxLen = 28) {
@@ -259,38 +253,46 @@ export async function renderDashboards() {
   Chart.defaults.borderColor = chartDefaults.borderColor;
 
   const categoryLabels = CATEGORIES.map(categoryChartLabel);
+  const categoryCounts = CATEGORIES.map((c) => byCategory[c]);
   const worldLabels = ['SAN', 'AURA'];
+  const worldCounts = [byWorld.SAN, byWorld.AURA];
   const pieCtx = document.getElementById('chart-category-doughnut');
   if (pieCtx) {
     window.__taleonCharts.categoryWorldPie = new Chart(pieCtx, {
       type: 'doughnut',
       data: {
-        labels: [...categoryLabels, ...worldLabels],
+        labels: categoryLabels,
         datasets: [
           {
-            label: 'Categoria',
-            data: CATEGORIES.map((c) => byCategory[c]),
+            label: 'Categoria (anel externo)',
+            data: categoryCounts,
             backgroundColor: CATEGORY_CHART_COLORS,
             borderColor: CHART_GOLD_GRADIENT,
             borderWidth: 1,
             radius: '100%',
-            cutout: '52%',
+            cutout: '50%',
           },
           {
-            label: 'Mundo',
-            data: [byWorld.SAN, byWorld.AURA],
-            backgroundColor: [CHART_GOLD_GRADIENT[0], CHART_GOLD_GRADIENT[2]],
-            borderColor: [CHART_GOLD_GRADIENT[0], CHART_GOLD_GRADIENT[2]],
+            label: 'Servidor (anel interno)',
+            data: worldCounts,
+            backgroundColor: WORLD_PIE_COLORS,
+            borderColor: WORLD_PIE_COLORS,
             borderWidth: 1,
-            radius: '48%',
+            radius: '50%',
             cutout: '0%',
           },
         ],
       },
       options: {
         ...doughnutLayout,
-        plugins: multiSeriesPiePlugins({ categoryLabels, worldLabels }),
+        plugins: categoryWorldPieTooltipPlugins({ categoryLabels, worldLabels }),
       },
+    });
+    renderCategoryWorldHtmlLegend({
+      categoryLabels,
+      categoryCounts,
+      worldLabels,
+      worldCounts,
     });
   }
 
