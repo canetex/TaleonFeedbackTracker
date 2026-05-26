@@ -7,7 +7,7 @@ import { bindSimilarityFlow } from './similarity.js';
 import { bindSuggestionImageUpload } from './storage-upload.js';
 import { renderDashboards } from './charts.js';
 import { fetchVoteQuota, renderVoteQuotaHeader } from './votes.js';
-import { renderRecentCommentsSidebar } from './recent-comments.js';
+import { renderRecentCommentsSidebar, bindRecentCommentsWidget } from './recent-comments.js';
 
 function showToast(message) {
   const toast = document.getElementById('toast');
@@ -59,6 +59,7 @@ async function loadBoard() {
 }
 
 async function init() {
+  bindRecentCommentsWidget();
   setBoardRefreshCallback(loadBoard);
   bindSuggestionForm(loadBoard);
   bindDetailModal();

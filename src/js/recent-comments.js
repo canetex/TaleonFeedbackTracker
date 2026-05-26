@@ -1,9 +1,56 @@
-// src/js/recent-comments.js — barra lateral de últimos comentários
+// src/js/recent-comments.js — widget lateral de últimos comentários
 import { fetchRecentComments } from './comments.js';
 import { escapeHtml, formatRelativeTime, truncateText, worldBadge } from './utils.js';
-import { WORLD_COLORS } from './constants.js';
+import { WORLD_COLORS, STORAGE_RECENT_WIDGET_MINIMIZED_KEY } from './constants.js';
 
 const RECENT_LIMIT = 8;
+
+function isWidgetMinimized() {
+  try {
+    return localStorage.getItem(STORAGE_RECENT_WIDGET_MINIMIZED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function setWidgetMinimized(minimized) {
+  try {
+    localStorage.setItem(STORAGE_RECENT_WIDGET_MINIMIZED_KEY, minimized ? '1' : '0');
+  } catch {
+    /* ignore */
+  }
+}
+
+function applyWidgetState(minimized) {
+  const widget = document.getElementById('recent-comments-widget');
+  const toggleBtn = document.getElementById('btn-recent-widget-toggle');
+  if (!widget || !toggleBtn) return;
+
+  widget.classList.toggle('is-minimized', minimized);
+  document.body.classList.toggle('recent-widget-expanded', !minimized);
+  toggleBtn.setAttribute('aria-expanded', minimized ? 'false' : 'true');
+  toggleBtn.title = minimized ? 'Expandir painel de comentários' : 'Minimizar painel';
+  toggleBtn.setAttribute('aria-label', toggleBtn.title);
+
+  const icon = toggleBtn.querySelector('[data-lucide]');
+  if (icon) {
+    icon.setAttribute('data-lucide', minimized ? 'message-circle' : 'panel-right-close');
+    window.lucide?.createIcons();
+  }
+}
+
+export function bindRecentCommentsWidget() {
+  const toggleBtn = document.getElementById('btn-recent-widget-toggle');
+  if (!toggleBtn) return;
+
+  applyWidgetState(isWidgetMinimized());
+
+  toggleBtn.addEventListener('click', () => {
+    const next = !document.getElementById('recent-comments-widget')?.classList.contains('is-minimized');
+    setWidgetMinimized(next);
+    applyWidgetState(next);
+  });
+}
 
 function renderRecentItem(comment) {
   const excerpt = truncateText(comment.content, 100);
@@ -31,6 +78,18 @@ function renderRecentItem(comment) {
   `;
 }
 
+function bindRecentCommentItems(listEl) {
+  listEl.querySelectorAll('.recent-comment-item').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.suggestionId;
+      const suggestion = window.__boardSuggestions?.find((s) => s.id === id);
+      if (suggestion && typeof window.openDetailModal === 'function') {
+        window.openDetailModal(suggestion);
+      }
+    });
+  });
+}
+
 export async function renderRecentCommentsSidebar() {
   const listEl = document.getElementById('recent-comments-list');
   if (!listEl) return;
@@ -48,16 +107,7 @@ export async function renderRecentCommentsSidebar() {
 
     listEl.innerHTML = comments.map(renderRecentItem).join('');
     window.lucide?.createIcons();
-
-    listEl.querySelectorAll('.recent-comment-item').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const id = btn.dataset.suggestionId;
-        const suggestion = window.__boardSuggestions?.find((s) => s.id === id);
-        if (suggestion && typeof window.openDetailModal === 'function') {
-          window.openDetailModal(suggestion);
-        }
-      });
-    });
+    bindRecentCommentItems(listEl);
   } catch (err) {
     listEl.innerHTML = `<p class="py-4 text-center text-xs text-red-400">${escapeHtml(err.message)}</p>`;
   }

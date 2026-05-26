@@ -47,4 +47,6 @@ export const STORAGE_VOTES_KEY = 'taleon_voted_suggestions';
 
 export const STORAGE_CARD_LAST_VIEWED_KEY = 'taleon_card_last_viewed';
 
+export const STORAGE_RECENT_WIDGET_MINIMIZED_KEY = 'taleon_recent_widget_minimized';
+
 export const IP_CACHE_KEY = 'taleon_client_ip';
