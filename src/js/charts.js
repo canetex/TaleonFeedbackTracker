@@ -59,6 +59,23 @@ function mixRgb(a, b, t) {
   ];
 }
 
+/** Clique na barra abre o modal de detalhes da sugestão. */
+function leaderboardClickOptions(items) {
+  return {
+    onClick(_evt, elements) {
+      if (!elements?.length) return;
+      const suggestion = items[elements[0].index];
+      if (suggestion && typeof window.openDetailModal === 'function') {
+        window.openDetailModal(suggestion);
+      }
+    },
+    onHover(evt, elements) {
+      const target = evt.native?.target;
+      if (target) target.style.cursor = elements?.length ? 'pointer' : 'default';
+    },
+  };
+}
+
 /** Degradê: top 3 dourado; demais posições esmaecem até o cinza do tema. */
 function leaderboardBarColor(rank, total) {
   if (rank < 3) return LEADERBOARD_TOP_GOLD[rank];
@@ -237,6 +254,7 @@ export async function renderDashboards() {
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
+        ...leaderboardClickOptions(leaderboard),
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -274,5 +292,6 @@ export async function renderDashboards() {
         },
       },
     });
+    window.__taleonLeaderboards = { ...(window.__taleonLeaderboards || {}), votes: leaderboard };
   }
 }
