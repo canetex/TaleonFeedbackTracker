@@ -22,9 +22,9 @@ const doughnutLayout = {
   aspectRatio: 1.35,
 };
 
-const radarLayout = {
+const engagementBarLayout = {
   ...chartResponsive,
-  aspectRatio: 1.25,
+  aspectRatio: 1.35,
 };
 
 const LEADERBOARD_TOP_N = 10;
@@ -32,7 +32,7 @@ const LEADERBOARD_TOP_N = 10;
 const LEADERBOARD_TOP_GOLD = CHART_GOLD_GRADIENT.slice(0, 3);
 
 function destroyCharts() {
-  for (const key of ['categoryWorldPie', 'radar', 'leaderboardVotes', 'leaderboardComments']) {
+  for (const key of ['categoryWorldPie', 'engagement', 'leaderboardVotes', 'leaderboardComments']) {
     const inst = window.__taleonCharts?.[key];
     if (inst) inst.destroy();
   }
@@ -230,20 +230,21 @@ export async function renderDashboards() {
 
   const byCategory = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
   const byWorld = { SAN: 0, AURA: 0 };
-  const engagementByCategory = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
+  const countByCategory = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
+  const saldoByCategory = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
   let votesUpTotal = 0;
   let votesDownTotal = 0;
 
   for (const s of suggestions) {
     if (byCategory[s.category] !== undefined) byCategory[s.category]++;
     if (byWorld[s.world] !== undefined) byWorld[s.world]++;
-    const eng = Math.abs(s.vote_score ?? 0) + (s.comment_count ?? 0);
-    if (engagementByCategory[s.category] !== undefined) {
-      engagementByCategory[s.category] += eng;
-    }
     if (s.status === 'approved') {
       votesUpTotal += s.vote_up_count ?? 0;
       votesDownTotal += s.vote_down_count ?? 0;
+      if (countByCategory[s.category] !== undefined) {
+        countByCategory[s.category]++;
+        saldoByCategory[s.category] += s.vote_score ?? 0;
+      }
     }
   }
 
@@ -293,43 +294,91 @@ export async function renderDashboards() {
     });
   }
 
-  const radarCtx = document.getElementById('chart-engagement-radar');
-  if (radarCtx) {
-    window.__taleonCharts.radar = new Chart(radarCtx, {
-      type: 'radar',
+  const engagementLabels = CATEGORIES.map((c) => c.split(' ').slice(0, 3).join(' '));
+  const saldoValues = CATEGORIES.map((c) => saldoByCategory[c]);
+  const engagementCtx = document.getElementById('chart-engagement-category');
+  if (engagementCtx) {
+    window.__taleonCharts.engagement = new Chart(engagementCtx, {
+      type: 'bar',
       data: {
-        labels: CATEGORIES.map((c) => c.split(' ').slice(0, 3).join(' ')),
+        labels: engagementLabels,
         datasets: [
           {
-            label: 'Engajamento (votos + comentários)',
-            data: CATEGORIES.map((c) => engagementByCategory[c]),
+            label: 'Sugestões aprovadas',
+            data: CATEGORIES.map((c) => countByCategory[c]),
+            backgroundColor: 'rgba(193, 160, 86, 0.88)',
             borderColor: SITE_PALETTE.gold,
-            backgroundColor: 'rgba(193, 160, 86, 0.22)',
-            pointBackgroundColor: CHART_GOLD_GRADIENT,
-            pointBorderColor: SITE_PALETTE.border,
+            borderWidth: 1,
+            yAxisID: 'y',
+            order: 2,
+          },
+          {
+            label: 'Saldo de votos',
+            data: saldoValues,
+            backgroundColor: saldoValues.map((v) =>
+              v < 0 ? 'rgba(125, 133, 144, 0.55)' : 'rgba(240, 212, 138, 0.42)'
+            ),
+            borderColor: saldoValues.map((v) =>
+              v < 0 ? SITE_PALETTE.muted : CHART_GOLD_GRADIENT[0]
+            ),
+            borderWidth: 1,
+            yAxisID: 'y1',
+            order: 1,
           },
         ],
       },
       options: {
-        ...radarLayout,
-        scales: {
-          r: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1,
-              color: SITE_PALETTE.muted,
-              backdropColor: 'transparent',
-              font: { size: 8 },
-            },
-            grid: { color: SITE_PALETTE.border },
-            angleLines: { color: SITE_PALETTE.border },
-            pointLabels: { color: SITE_PALETTE.text, font: { size: 8 } },
+        ...engagementBarLayout,
+        datasets: {
+          bar: {
+            grouped: false,
+            categoryPercentage: 0.72,
+            barPercentage: 0.9,
           },
         },
         plugins: {
           legend: {
             position: 'bottom',
             labels: { color: SITE_PALETTE.text, font: { size: 9 }, boxWidth: 10 },
+          },
+          tooltip: {
+            callbacks: {
+              afterBody: (items) => {
+                if (items.length < 2) return [];
+                const cat = CATEGORIES[items[0].dataIndex];
+                if (!cat) return [];
+                return [`Categoria: ${cat}`];
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: SITE_PALETTE.text, font: { size: 8 }, maxRotation: 45, minRotation: 25 },
+            grid: { display: false },
+          },
+          y: {
+            beginAtZero: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Sugestões',
+              color: SITE_PALETTE.muted,
+              font: { size: 9 },
+            },
+            ticks: { color: SITE_PALETTE.muted, font: { size: 8 }, stepSize: 1 },
+            grid: { color: SITE_PALETTE.border },
+          },
+          y1: {
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Saldo',
+              color: SITE_PALETTE.gold,
+              font: { size: 9 },
+            },
+            ticks: { color: SITE_PALETTE.gold, font: { size: 8 } },
+            grid: { drawOnChartArea: false },
           },
         },
       },
