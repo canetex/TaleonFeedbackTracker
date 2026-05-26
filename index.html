@@ -363,13 +363,6 @@
             </div>
           </div>
         </div>
-        <div class="rounded-lg border border-taleon-border bg-taleon-bg p-3 sm:p-4">
-          <h3 class="mb-2 text-xs font-semibold text-taleon-muted sm:text-sm">Engajamento por categoria</h3>
-          <p class="mb-2 text-[10px] text-taleon-muted">Radar empilhado: base = sugestões · faixa externa = saldo de votos</p>
-          <div class="dashboard-chart-wrap">
-            <canvas id="chart-engagement-category" role="img" aria-label="Radar empilhado de sugestões e saldo por categoria"></canvas>
-          </div>
-        </div>
         <div class="rounded-lg border border-taleon-border bg-taleon-bg p-3 sm:p-4 sm:col-span-2 lg:col-span-2">
           <h3 class="mb-2 text-xs font-semibold text-taleon-muted sm:text-sm">Leaderboard — saldo de votos</h3>
           <p class="mb-2 text-[10px] text-taleon-muted">Top 3 em destaque dourado · clique para abrir a sugestão</p>
@@ -384,6 +377,13 @@
             <canvas id="chart-comment-leaderboard" role="img" aria-label="Ranking de sugestões por volume de comentários"></canvas>
           </div>
           <p id="comment-leaderboard-empty" class="mt-2 hidden text-center text-[10px] text-taleon-muted">Nenhum comentário nas sugestões aprovadas ainda.</p>
+        </div>
+        <div class="rounded-lg border border-taleon-border bg-taleon-bg p-3 sm:p-4 sm:col-span-2 lg:col-span-2">
+          <h3 class="mb-2 text-xs font-semibold text-taleon-muted sm:text-sm">Engajamento por categoria</h3>
+          <p class="mb-2 text-[10px] text-taleon-muted">Duas séries por categoria: volume de feedbacks e saldo de votos (aprovados)</p>
+          <div class="dashboard-chart-wrap dashboard-chart-wrap--tall">
+            <canvas id="chart-engagement-category" role="img" aria-label="Radar de feedbacks e saldo de votos por categoria"></canvas>
+          </div>
         </div>
       </div>
     </div>

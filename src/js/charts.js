@@ -244,7 +244,6 @@ export async function renderDashboards() {
 
   const byCategory = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
   const byWorld = { SAN: 0, AURA: 0 };
-  const countByCategory = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
   const saldoByCategory = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
   let votesUpTotal = 0;
   let votesDownTotal = 0;
@@ -255,8 +254,7 @@ export async function renderDashboards() {
     if (s.status === 'approved') {
       votesUpTotal += s.vote_up_count ?? 0;
       votesDownTotal += s.vote_down_count ?? 0;
-      if (countByCategory[s.category] !== undefined) {
-        countByCategory[s.category]++;
+      if (saldoByCategory[s.category] !== undefined) {
         saldoByCategory[s.category] += s.vote_score ?? 0;
       }
     }
@@ -317,13 +315,13 @@ export async function renderDashboards() {
   }
 
   const engagementLabels = CATEGORIES.map((c) => c.split(' ').slice(0, 3).join(' '));
-  const suggestionCounts = CATEGORIES.map((c) => countByCategory[c]);
-  const saldoValues = CATEGORIES.map((c) => saldoByCategory[c]);
-  const stackedTotals = suggestionCounts.map((count, i) => count + saldoValues[i]);
+  const feedbacksPerCategory = CATEGORIES.map((c) => byCategory[c]);
+  const saldoPerCategory = CATEGORIES.map((c) => saldoByCategory[c]);
   const engagementCtx = document.getElementById('chart-engagement-category');
   if (engagementCtx) {
-    const rMax = Math.max(...suggestionCounts, ...stackedTotals, 1);
-    const rMin = Math.min(0, ...stackedTotals);
+    const axisValues = [...feedbacksPerCategory, ...saldoPerCategory];
+    const rMax = Math.max(...axisValues, 1);
+    const rMin = Math.min(...axisValues, 0);
 
     window.__taleonCharts.engagement = new Chart(engagementCtx, {
       type: 'radar',
@@ -331,35 +329,34 @@ export async function renderDashboards() {
         labels: engagementLabels,
         datasets: [
           {
-            label: 'Sugestões aprovadas',
-            data: suggestionCounts,
+            label: 'Feedbacks por Categoria',
+            data: feedbacksPerCategory,
             borderColor: SITE_PALETTE.gold,
-            backgroundColor: 'rgba(193, 160, 86, 0.38)',
+            backgroundColor: 'rgba(193, 160, 86, 0.22)',
             pointBackgroundColor: SITE_PALETTE.gold,
             pointBorderColor: SITE_PALETTE.border,
             pointHoverBackgroundColor: CHART_GOLD_GRADIENT[0],
             pointHoverBorderColor: SITE_PALETTE.border,
             borderWidth: 2,
-            fill: 'origin',
+            fill: true,
           },
           {
-            label: 'Saldo de votos',
-            data: stackedTotals,
+            label: 'Saldo de Votos da Categoria',
+            data: saldoPerCategory,
             borderColor: CHART_GOLD_GRADIENT[0],
-            backgroundColor: 'rgba(240, 212, 138, 0.28)',
+            backgroundColor: 'rgba(240, 212, 138, 0.18)',
             pointBackgroundColor: CHART_GOLD_GRADIENT[0],
             pointBorderColor: SITE_PALETTE.border,
             pointHoverBackgroundColor: CHART_GOLD_GRADIENT[0],
             pointHoverBorderColor: SITE_PALETTE.border,
             borderWidth: 2,
-            fill: '-1',
+            fill: true,
           },
         ],
       },
       options: {
         ...engagementRadarLayout,
         plugins: {
-          filler: { propagate: false },
           legend: {
             position: 'bottom',
             labels: { color: SITE_PALETTE.text, font: { size: 9 }, boxWidth: 10 },
@@ -372,16 +369,12 @@ export async function renderDashboards() {
               },
               label(ctx) {
                 const idx = ctx.dataIndex ?? 0;
+                const value = ctx.parsed.r ?? ctx.raw;
                 if (ctx.datasetIndex === 0) {
-                  return `Sugestões: ${suggestionCounts[idx]}`;
+                  return `Feedbacks: ${value}`;
                 }
-                const saldo = saldoValues[idx];
-                return `Saldo: ${saldo > 0 ? '+' : ''}${saldo}`;
-              },
-              afterLabel(ctx) {
-                if (ctx.datasetIndex !== 1) return '';
-                const idx = ctx.dataIndex ?? 0;
-                return `Total empilhado: ${stackedTotals[idx]}`;
+                const saldo = saldoPerCategory[idx];
+                return `Saldo de votos: ${saldo > 0 ? '+' : ''}${saldo}`;
               },
             },
           },
@@ -395,9 +388,9 @@ export async function renderDashboards() {
         },
         scales: {
           r: {
-            beginAtZero: true,
-            suggestedMin: rMin < 0 ? rMin * 1.1 : 0,
-            suggestedMax: rMax * 1.12,
+            beginAtZero: rMin >= 0,
+            suggestedMin: rMin < 0 ? Math.floor(rMin * 1.12) : 0,
+            suggestedMax: Math.ceil(rMax * 1.12),
             ticks: {
               stepSize: 1,
               color: SITE_PALETTE.muted,
