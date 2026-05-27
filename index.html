@@ -494,20 +494,34 @@
           id="detail-vote-wrap"
           class="rounded-lg border border-taleon-border bg-taleon-bg px-3 py-2.5 text-sm"
         >
-          <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-taleon-muted">Votos da sugestão</p>
-          <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span class="inline-flex items-center gap-1.5 text-taleon-muted">
-              <i data-lucide="thumbs-up" class="h-4 w-4 text-taleon-gold"></i>
+          <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-taleon-muted">Votar nesta sugestão</p>
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-1 rounded-md border border-taleon-gold/30 bg-taleon-card px-2 py-1.5">
+              <button
+                type="button"
+                id="detail-vote-btn-up"
+                data-detail-vote="up"
+                class="rounded p-1 hover:bg-taleon-border disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Voto positivo"
+              >
+                <i data-lucide="thumbs-up" class="h-5 w-5 text-taleon-gold"></i>
+              </button>
+              <span id="detail-vote-score" class="min-w-[2rem] text-center text-lg font-bold text-taleon-gold">0</span>
+              <button
+                type="button"
+                id="detail-vote-btn-down"
+                data-detail-vote="down"
+                class="rounded p-1 hover:bg-taleon-border disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Voto negativo"
+              >
+                <i data-lucide="thumbs-down" class="h-5 w-5 text-taleon-muted"></i>
+              </button>
+            </div>
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-taleon-muted">
               <span><span id="detail-vote-up" class="font-bold text-taleon-gold">0</span> positivos</span>
-            </span>
-            <span class="inline-flex items-center gap-1.5 text-taleon-muted">
-              <i data-lucide="thumbs-down" class="h-4 w-4"></i>
+              <span aria-hidden="true">·</span>
               <span><span id="detail-vote-down" class="font-bold text-taleon-text">0</span> negativos</span>
-            </span>
-            <span class="inline-flex items-center gap-1.5 border-l border-taleon-border pl-4 text-taleon-muted">
-              Saldo:
-              <span id="detail-vote-score" class="font-bold text-taleon-gold">0</span>
-            </span>
+            </div>
           </div>
         </div>
       </div>

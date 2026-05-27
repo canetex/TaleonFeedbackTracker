@@ -10,6 +10,12 @@ import { escapeHtml, formatDate, worldBadge, renderImageGallery } from './utils.
 import { WORLD_COLORS } from './constants.js';
 import { markCardViewed } from './comment-views.js';
 import { renderBoard } from './board.js';
+import {
+  canVoteOnSuggestion,
+  castVote,
+  renderVoteQuotaHeader,
+  validateVoteBeforeCast,
+} from './votes.js';
 
 let currentSuggestion = null;
 
@@ -68,6 +74,49 @@ function syncBoardSuggestionVoteStats(suggestionId, stats) {
   };
 }
 
+function refreshDetailVoteButtons() {
+  if (!currentSuggestion || currentSuggestion.status === 'pending') return;
+
+  const upBtn = document.getElementById('detail-vote-btn-up');
+  const downBtn = document.getElementById('detail-vote-btn-down');
+  const canUp = canVoteOnSuggestion(currentSuggestion.id, 'up');
+  const canDown = canVoteOnSuggestion(currentSuggestion.id, 'down');
+
+  if (upBtn) {
+    upBtn.disabled = !canUp;
+  }
+  if (downBtn) {
+    downBtn.disabled = !canDown;
+  }
+}
+
+async function handleDetailVote(voteType) {
+  if (!currentSuggestion || currentSuggestion.status === 'pending') return;
+
+  const suggestionId = currentSuggestion.id;
+  try {
+    validateVoteBeforeCast(suggestionId, voteType);
+    await castVote(suggestionId, voteType);
+
+    const stats = await fetchSuggestionVoteStats(suggestionId);
+    currentSuggestion = { ...currentSuggestion, ...stats };
+    syncBoardSuggestionVoteStats(suggestionId, stats);
+    renderDetailVoteStats(stats);
+    refreshDetailVoteButtons();
+    renderVoteQuotaHeader();
+
+    const scoreEl = document.querySelector(`[data-score="${suggestionId}"]`);
+    if (scoreEl) {
+      const score = stats.vote_score ?? 0;
+      scoreEl.textContent = score > 0 ? `+${score}` : String(score);
+    }
+
+    window.lucide?.createIcons();
+  } catch (err) {
+    window.showToast?.(err.message || 'Erro ao registrar voto.');
+  }
+}
+
 function syncBoardCommentViewStats(suggestionId, comments) {
   if (!window.__boardSuggestions?.length) return;
   const idx = window.__boardSuggestions.findIndex((s) => s.id === suggestionId);
@@ -116,6 +165,7 @@ export async function openDetailModal(suggestion) {
       vote_down_count: suggestion.vote_down_count,
       vote_score: suggestion.vote_score,
     });
+    refreshDetailVoteButtons();
 
     fetchSuggestionVoteStats(suggestion.id)
       .then((stats) => {
@@ -123,6 +173,7 @@ export async function openDetailModal(suggestion) {
         currentSuggestion = { ...currentSuggestion, ...stats };
         syncBoardSuggestionVoteStats(suggestion.id, stats);
         renderDetailVoteStats(stats);
+        refreshDetailVoteButtons();
         window.lucide?.createIcons();
       })
       .catch((err) => {
@@ -170,6 +221,13 @@ export function bindDetailModal() {
   const closeBtns = document.querySelectorAll('[data-close-detail]');
 
   bindCommentImageUpload();
+
+  modal?.addEventListener('click', (e) => {
+    const voteBtn = e.target.closest('[data-detail-vote]');
+    if (!voteBtn || voteBtn.disabled) return;
+    e.stopPropagation();
+    handleDetailVote(voteBtn.dataset.detailVote);
+  });
 
   closeBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
