@@ -2,6 +2,7 @@
 import { getSupabase } from './supabase-client.js';
 import { getClientIp } from './ip.js';
 import { STORAGE_VOTES_KEY } from './constants.js';
+import { fetchAllPages } from './supabase-pagination.js';
 
 function voteLimitMessage(kind, limit) {
   const n = limit ?? current_quota?.limit_up ?? 15;
@@ -165,15 +166,16 @@ export async function fetchVoteQuota() {
 export async function fetchIpVoteCountsForBoard() {
   const supabase = getSupabase();
   const ip_address = await getClientIp();
-  const { data, error } = await supabase
-    .from('votes')
-    .select('suggestion_id, vote_type')
-    .eq('ip_address', ip_address);
-
-  if (error) throw error;
+  const rows = await fetchAllPages((from, to) =>
+    supabase
+      .from('votes')
+      .select('suggestion_id, vote_type')
+      .eq('ip_address', ip_address)
+      .range(from, to)
+  );
 
   serverVoteCountsBySuggestion = {};
-  for (const row of data ?? []) {
+  for (const row of rows) {
     const id = row.suggestion_id;
     if (!serverVoteCountsBySuggestion[id]) {
       serverVoteCountsBySuggestion[id] = { up: 0, down: 0 };

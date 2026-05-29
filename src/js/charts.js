@@ -5,7 +5,7 @@ import {
   CHART_GOLD_GRADIENT,
   SITE_PALETTE,
 } from './constants.js';
-import { fetchBoardSuggestions } from './suggestions.js';
+import { fetchBoardSuggestions, fetchCommunityVoteTotals } from './suggestions.js';
 
 const chartDefaults = {
   color: SITE_PALETTE.text,
@@ -251,7 +251,13 @@ export async function renderDashboards() {
   const section = document.getElementById('dashboards-section');
   if (!section || typeof Chart === 'undefined') return;
 
-  const suggestions = await fetchBoardSuggestions();
+  const [suggestions, voteTotals] = await Promise.all([
+    fetchBoardSuggestions(),
+    fetchCommunityVoteTotals().catch((err) => {
+      console.warn('totais de votos da comunidade:', err);
+      return null;
+    }),
+  ]);
   destroyCharts();
   window.__taleonCharts = window.__taleonCharts || {};
 
@@ -259,6 +265,7 @@ export async function renderDashboards() {
   const byWorld = { SAN: 0, AURA: 0 };
   const saldoByCategory = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
   const commentsByCategory = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
+
   let votesUpTotal = 0;
   let votesDownTotal = 0;
 
@@ -266,8 +273,10 @@ export async function renderDashboards() {
     if (byCategory[s.category] !== undefined) byCategory[s.category]++;
     if (byWorld[s.world] !== undefined) byWorld[s.world]++;
     if (s.status === 'approved') {
-      votesUpTotal += s.vote_up_count ?? 0;
-      votesDownTotal += s.vote_down_count ?? 0;
+      if (!voteTotals) {
+        votesUpTotal += s.vote_up_count ?? 0;
+        votesDownTotal += s.vote_down_count ?? 0;
+      }
       if (saldoByCategory[s.category] !== undefined) {
         saldoByCategory[s.category] += s.vote_score ?? 0;
         commentsByCategory[s.category] += s.comment_count ?? 0;
@@ -277,8 +286,8 @@ export async function renderDashboards() {
 
   renderCommunityStats({
     feedbackTotal: suggestions.length,
-    votesUp: votesUpTotal,
-    votesDown: votesDownTotal,
+    votesUp: voteTotals?.votesUp ?? votesUpTotal,
+    votesDown: voteTotals?.votesDown ?? votesDownTotal,
   });
   window.lucide?.createIcons();
 

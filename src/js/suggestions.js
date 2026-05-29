@@ -12,6 +12,7 @@ import {
   clearPendingSuggestionImages,
 } from './storage-upload.js';
 import { splitCommentsByViewed } from './comment-views.js';
+import { fetchAllPages } from './supabase-pagination.js';
 
 export async function fetchBoardSuggestions() {
   const supabase = getSupabase();
@@ -34,9 +35,21 @@ export async function fetchBoardSuggestions() {
   let commentsBySuggestionId = {};
 
   if (approvedIds.length > 0) {
-    const [{ data: votes }, { data: comments }] = await Promise.all([
-      supabase.from('votes').select('suggestion_id, vote_type').in('suggestion_id', approvedIds),
-      supabase.from('comments').select('suggestion_id, created_at').in('suggestion_id', approvedIds),
+    const [votes, comments] = await Promise.all([
+      fetchAllPages((from, to) =>
+        supabase
+          .from('votes')
+          .select('suggestion_id, vote_type')
+          .in('suggestion_id', approvedIds)
+          .range(from, to)
+      ),
+      fetchAllPages((from, to) =>
+        supabase
+          .from('comments')
+          .select('suggestion_id, created_at')
+          .in('suggestion_id', approvedIds)
+          .range(from, to)
+      ),
     ]);
 
     for (const id of approvedIds) {
@@ -44,7 +57,7 @@ export async function fetchBoardSuggestions() {
       upCountById[id] = 0;
       downCountById[id] = 0;
     }
-    for (const v of votes ?? []) {
+    for (const v of votes) {
       if (v.vote_type === 'up') {
         upCountById[v.suggestion_id] += 1;
         scoreById[v.suggestion_id] += 1;
@@ -53,7 +66,7 @@ export async function fetchBoardSuggestions() {
         scoreById[v.suggestion_id] -= 1;
       }
     }
-    for (const c of comments ?? []) {
+    for (const c of comments) {
       commentCountById[c.suggestion_id] = (commentCountById[c.suggestion_id] || 0) + 1;
       if (!commentsBySuggestionId[c.suggestion_id]) {
         commentsBySuggestionId[c.suggestion_id] = [];
@@ -80,19 +93,33 @@ export async function fetchBoardSuggestions() {
   });
 }
 
+/** Totais globais de votos (aprovados, via RLS) — sem teto de 1000 linhas. */
+export async function fetchCommunityVoteTotals() {
+  const supabase = getSupabase();
+  const [upResult, downResult] = await Promise.all([
+    supabase.from('votes').select('id', { count: 'exact', head: true }).eq('vote_type', 'up'),
+    supabase.from('votes').select('id', { count: 'exact', head: true }).eq('vote_type', 'down'),
+  ]);
+
+  if (upResult.error) throw upResult.error;
+  if (downResult.error) throw downResult.error;
+
+  return {
+    votesUp: upResult.count ?? 0,
+    votesDown: downResult.count ?? 0,
+  };
+}
+
 /** Contagem ao vivo de votos de uma sugestão (usado no modal de detalhes). */
 export async function fetchSuggestionVoteStats(suggestionId) {
   const supabase = getSupabase();
-  const { data: votes, error } = await supabase
-    .from('votes')
-    .select('vote_type')
-    .eq('suggestion_id', suggestionId);
-
-  if (error) throw error;
+  const votes = await fetchAllPages((from, to) =>
+    supabase.from('votes').select('vote_type').eq('suggestion_id', suggestionId).range(from, to)
+  );
 
   let vote_up_count = 0;
   let vote_down_count = 0;
-  for (const v of votes ?? []) {
+  for (const v of votes) {
     if (v.vote_type === 'up') vote_up_count += 1;
     else if (v.vote_type === 'down') vote_down_count += 1;
   }
